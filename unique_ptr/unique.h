@@ -1,10 +1,11 @@
 template<typename T>
 class UniquePtr {
 private:
-    T *pointer;
+    T* pointer;
 
 public:
-    UniquePtr(T *pointer);
+    UniquePtr();
+    UniquePtr(T* pointer);
     UniquePtr(const UniquePtr&) = delete;
     UniquePtr& operator=(const UniquePtr&) = delete;
 
@@ -13,11 +14,11 @@ public:
 
     ~UniquePtr();
 
-    T operator*();
-    T* operator->();
-    bool operator!();
-    operator bool();
-    T* get();
+    T operator*() const;
+    T* operator->() const;
+    bool operator!() const;
+    operator bool() const;
+    T* get() const;
     void reset();
     T* release();
 };

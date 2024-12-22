@@ -6,7 +6,7 @@ SharedPtr<T>::SharedPtr()
 }
 
 template <typename T>
-SharedPtr<T>::SharedPtr(T* pointer)
+SharedPtr<T>::SharedPtr(T* const pointer)
 {
     this->pointer = pointer;
     count = new int(1);
@@ -71,19 +71,19 @@ SharedPtr<T>::~SharedPtr()
 }
 
 template <typename T>
-T& SharedPtr<T>::operator*()
+T& SharedPtr<T>::operator*() const
 {
     return *pointer;
 }
 
 template <typename T>
-T* SharedPtr<T>::operator->()
+T* SharedPtr<T>::operator->() const
 {
     return pointer;
 }
 
 template <typename T>
-bool SharedPtr<T>::operator!()
+bool SharedPtr<T>::operator!() const
 {
     return pointer == nullptr;
 }
@@ -95,7 +95,7 @@ SharedPtr<T>::operator bool() const
 }
 
 template <typename T>
-T* SharedPtr<T>::get()
+T* SharedPtr<T>::get() const
 {
     return pointer;
 }
@@ -113,7 +113,7 @@ void SharedPtr<T>::reset()
 }
 
 template <typename T>
-int SharedPtr<T>::use_count()
+int SharedPtr<T>::use_count() const
 {
     return count ? *count : 0;
 }

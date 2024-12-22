@@ -14,12 +14,12 @@ public:
     SharedPtr& operator=(SharedPtr&& other);
     ~SharedPtr();
 
-    T& operator*();
-    T* operator->();
-    bool operator!();
+    T& operator*() const;
+    T* operator->() const;
+    bool operator!() const;
     operator bool() const;
-    int use_count();
-    T* get();
+    int use_count() const ;
+    T* get() const;
     void reset();
 };
 

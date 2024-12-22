@@ -1,5 +1,10 @@
 template<typename T>
-UniquePtr<T>::UniquePtr(T *pointer) {
+UniquePtr<T>::UniquePtr() {
+    this->pointer = nullptr;
+}
+
+template<typename T>
+UniquePtr<T>::UniquePtr(T* pointer) {
     this->pointer = pointer;
 }
 
@@ -28,27 +33,27 @@ UniquePtr<T>::~UniquePtr() {
 }
 
 template<typename T>
-T UniquePtr<T>::operator*() {
+T UniquePtr<T>::operator*() const{
     return *pointer;
 }
 
 template<typename T>
-T* UniquePtr<T>::operator->() {
+T* UniquePtr<T>::operator->() const{
     return pointer;
 }
 
 template<typename T>
-bool UniquePtr<T>::operator!() {
+bool UniquePtr<T>::operator!() const{
     return pointer == nullptr;
 }
 
 template<typename T>
-UniquePtr<T>::operator bool(){
+UniquePtr<T>::operator bool() const{
     return pointer != nullptr;
 }
 
 template<typename T>
-T* UniquePtr<T>::get() {
+T* UniquePtr<T>::get() const{
     return pointer;
 }
 
