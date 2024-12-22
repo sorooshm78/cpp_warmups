@@ -7,7 +7,7 @@
 ---
 
 * [X] const function
-* [ ] exception
+* [X] exception
 * [X] split to header -inl.h
 * [X] existing pointer as input in ctor
 * [X] implement release method
