@@ -90,6 +90,19 @@ public:
 }
 ```
 
+When a base class is intended for polymorphic use, its destructor may have to be declared public and virtual. This blocks implicit moves (and deprecates implicit copies), and so the special member functions have to be defined as = default[2].
+
+```c++
+class base_of_five_defaults
+{
+public:
+    base_of_five_defaults(const base_of_five_defaults&) = default;
+    base_of_five_defaults(base_of_five_defaults&&) = default;
+    base_of_five_defaults& operator=(const base_of_five_defaults&) = default;
+    base_of_five_defaults& operator=(base_of_five_defaults&&) = default;
+    virtual ~base_of_five_defaults() = default;
+};
+```
 
 ---
 
