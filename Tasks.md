@@ -9,7 +9,7 @@
 * [ ] noexcept keyword and implement
 * [ ] google test different classes int string user-define-type 
 * [ ] return value of copy/move assigment with test 
-* [ ] why const is needed function input varibles with test 
+* [X] why const is needed function input varibles with test 
 * [ ] self assigment logic with test  
 * [ ] thread safty class and implement and write test for show this 
 
