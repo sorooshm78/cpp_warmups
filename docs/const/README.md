@@ -110,3 +110,147 @@ Here, `arr` is a “pointer to const int”, which tells the compiler and your t
     - For small trivial types (e.g., `int`, `char`, `double`), passing by value (e.g. `int n`) is typically fine and might even be more efficient than passing by reference.
 
 In summary, using `const` in function parameters is a good practice whenever you do not intend to modify the passed-in data. It not only prevents logical errors but also can lead to better-optimized and more flexible code.
+
+---
+
+In C++, when you write a member function with `const` at the end of its signature—like this:
+
+```cpp
+int getValue() const {
+    // ...
+}
+```
+
+—it tells the compiler (and communicates to other developers) that this member function does *not* modify the object on which it is called. Specifically, it promises that none of the non-`mutable` member variables will be changed. It also means that this function can be called on `const` instances of the class.
+
+---
+
+## What does the `const` after the function name do?
+
+1. **Prevents modification of the object:**  
+   Within a `const` member function, the `this` pointer is treated as a pointer to a const object (`const YourClass* const this`). This means you cannot modify non-`mutable` member variables inside the function.
+
+2. **Allows calling on const objects:**  
+   A `const` member function can be called on both const and non-const instances of the class. A non-const member function can *only* be called on non-const instances.
+
+3. **Improves code safety and clarity:**  
+   Marking a function as `const` makes it explicit that calling it will not change the observable state of the object. This helps prevent accidental side effects and makes the code’s intention clearer.
+
+---
+
+## Basic Example
+
+Consider a simple `Counter` class:
+
+```cpp
+#include <iostream>
+
+class Counter {
+private:
+    int count;
+
+public:
+    // Constructor
+    Counter(int start = 0) : count(start) {}
+
+    // This member function does not modify the object, so mark it const
+    int getCount() const {
+        // count++; // ERROR: cannot modify 'count' in a const function
+        return count;
+    }
+
+    // This member function modifies the object (increment count), so it's NOT const
+    void increment() {
+        ++count;
+    }
+};
+
+int main() {
+    Counter c1(10);
+    std::cout << "Initial count: " << c1.getCount() << std::endl; // OK
+
+    c1.increment();
+    std::cout << "After increment: " << c1.getCount() << std::endl; // OK
+
+    // Create a const object
+    const Counter c2(100);
+    std::cout << "Const counter: " << c2.getCount() << std::endl; // OK
+    // c2.increment();  // ERROR: cannot call non-const function on a const object
+
+    return 0;
+}
+```
+
+### Explanation
+
+- **`getCount() const`:**
+    - This function returns the current `count` and does not alter the state of the `Counter`. Declaring it as `const` enforces that you can’t change any member variables inside `getCount()` (unless they’re declared `mutable`, which is more advanced usage).
+    - It also allows you to call `getCount()` on a `const Counter` object (`c2`).
+
+- **`increment()`:**
+    - This function changes the internal state (`count`). It is *not* marked as `const` because it obviously modifies the object.
+
+- **`c2` is a const object:**
+    - You can only call member functions on `c2` that are marked `const` (like `getCount()`).
+    - Attempting to call `increment()` on `c2` produces a compiler error because `increment()` is a non-const function.
+
+---
+
+## Another Example (Demonstrating Overloading)
+
+Sometimes you may want to have two different versions of the same function: one that is const, and one that is non-const. For example, you might want to provide direct access to a member variable for non-const objects but read-only access for const objects:
+
+```cpp
+#include <iostream>
+#include <string>
+
+class Person {
+private:
+    std::string name;
+
+public:
+    Person(const std::string& name) : name(name) {}
+
+    // Non-const version: returns a reference that allows modification
+    std::string& getName() {
+        return name;
+    }
+
+    // Const version: returns a const reference, cannot be modified
+    const std::string& getName() const {
+        return name;
+    }
+};
+
+int main() {
+    Person p("Alice");
+
+    // Non-const person: can modify name through the returned reference
+    p.getName() = "Bob";  
+    std::cout << "Non-const person name: " << p.getName() << std::endl;
+
+    const Person cp("Charlie");
+    // cp.getName() = "Cathy"; // ERROR: returned reference is const in this context
+    std::cout << "Const person name: " << cp.getName() << std::endl;
+
+    return 0;
+}
+```
+
+### Explanation
+
+- We have two `getName()` functions:
+    1. **Non-const** version returns a `std::string&`, which means callers can modify the returned string.
+    2. **Const** version returns a `const std::string&`, which prevents modification of the returned string.
+
+- For a **const** instance (`cp`), only the **const** version of `getName()` is accessible. Hence, you cannot change the name of a const `Person`.
+
+---
+
+## Summary
+
+- Adding `const` at the end of a member function (`void func() const`) tells the compiler that this function will not modify the object’s non-`mutable` data members.
+- A const member function can be called on both const and non-const objects.
+- A non-const member function **cannot** be called on a const object.
+- Using const-correctness in C++ improves code safety, maintainability, and clarity by making your intentions explicit and allowing the compiler to catch unintended modifications.
+

@@ -1,8 +1,8 @@
 # Todo
 * [ ] weak_ptr with rational example
 * [ ] behavior copy and move constructor 
-* [ ] class method right const
-* [ ] mutable keyword with example
+* [X] class method right const
+* [X] mutable keyword with example
 * [ ] first two lines of move assigment 
 * [ ] explicit keyword 
 * [ ] noexcept keyword 
