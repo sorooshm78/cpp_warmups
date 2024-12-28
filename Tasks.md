@@ -1,20 +1,19 @@
-* [ ] weak_ptr ?
-* [ ] C++ rule of three
-* [ ] C++ rule of five
-* [ ] implement vector of all copy and move and ctor dtor
-* [X] implement unique_ptr and shared_ptr
+# Todo
+* [ ] weak_ptr with rational example
 * [ ] behavior copy and move constructor 
+* [ ] class method right const
+* [ ] mutable keyword with example
+* [ ] first two lines of move assigment 
+* [ ] explicit keyword 
+* [ ] noexcept keyword and implement
+* [ ] google test different classes int string user-define-type 
+* [ ] return value of copy/move assigment with test 
+* [ ] why const is needed function input varibles with test 
+* [ ] self assigment logic with test  
+* [ ] thread safty class and implement and write test for show this 
 
 ---
-
-* [X] const function
-* [X] exception
-* [X] split to header -inl.h
-* [X] existing pointer as input in ctor
-* [X] implement release method
-* [X] implement operator bool method
- 
----
-
+# Future work 
+* [ ] implement vector of all copy and move and ctor dtor
 * [ ] array of unique_ptr
 * [ ] input deleter 
