@@ -1,12 +1,12 @@
 # Todo
-* [ ] return value of copy/move assigment with test
-* [ ] behavior copy and move constructor 
-* [ ] first two lines of move assigment 
-* [ ] self assigment logic with test  
+* [X] return value of copy/move assigment with test
+* [ ] self assigment logic with test
+* [ ] first two lines of move assigment
+* [ ] noexcept and explicit implement
 * [ ] google test different classes int string user-define-type
 * [ ] weak_ptr with rational example
 * [ ] thread safty class and implement and write test for show this 
-* [ ] noexcept and explicit implement
+* [ ] behavior copy and move constructor
 * [X] class method right const
 * [X] mutable keyword with example
 * [X] explicit keyword
@@ -18,3 +18,7 @@
 * [ ] implement vector of all copy and move and ctor dtor
 * [ ] array of unique_ptr
 * [ ] input deleter 
+
+--- 
+# More
+* [ ] slicing in C++
