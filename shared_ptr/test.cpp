@@ -148,6 +148,7 @@ TEST(SharedPtrTest, CopyAssignmentRefrence)
     EXPECT_EQ(*ptr2, 42);
 }
 
+
 TEST(SharedPtrTest, MoveAssignmentRefrence)
 {
     SharedPtr<int> ptr(new int(30));
@@ -162,4 +163,3 @@ TEST(SharedPtrTest, MoveAssignmentRefrence)
     EXPECT_EQ(ptr1.use_count(), 2);
     EXPECT_EQ(ptr2.use_count(), 2);
 }
-
