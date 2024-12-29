@@ -5,7 +5,7 @@
 * [X] mutable keyword with example
 * [ ] first two lines of move assigment 
 * [X] explicit keyword 
-* [ ] noexcept keyword 
+* [X] noexcept keyword 
 * [ ] noexcept and explicit implement
 * [ ] google test different classes int string user-define-type 
 * [ ] return value of copy/move assigment with test 
