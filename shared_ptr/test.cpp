@@ -133,3 +133,34 @@ TEST(SharedPtrTest, NotOperator)
     SharedPtr<int> ptr2(new int(42));
     EXPECT_FALSE(!ptr2);
 }
+
+
+TEST(SharedPtrTest, CopyAssignmentRefrence)
+{
+    SharedPtr<int> ptr(new int(42));
+    SharedPtr<int> ptr1;
+    SharedPtr<int> ptr2;
+
+    ptr2 = ptr1 = ptr;
+
+    EXPECT_EQ(*ptr, 42);
+    EXPECT_EQ(*ptr1, 42);
+    EXPECT_EQ(*ptr2, 42);
+}
+
+TEST(SharedPtrTest, MoveAssignmentRefrence)
+{
+    SharedPtr<int> ptr(new int(30));
+    SharedPtr<int> ptr1;
+    SharedPtr<int> ptr2;
+
+    ptr2 = std::move(ptr1) = std::move(ptr);
+
+    EXPECT_EQ(*ptr2, 30);
+
+    EXPECT_EQ(ptr.use_count(), 0);
+    EXPECT_EQ(ptr1.use_count(), 2);
+    EXPECT_EQ(ptr2.use_count(), 2);
+}
+
+
