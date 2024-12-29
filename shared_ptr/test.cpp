@@ -163,4 +163,3 @@ TEST(SharedPtrTest, MoveAssignmentRefrence)
     EXPECT_EQ(ptr2.use_count(), 2);
 }
 
-

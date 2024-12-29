@@ -8,10 +8,8 @@ public:
     UniquePtr(T* pointer);
     UniquePtr(const UniquePtr&) = delete;
     UniquePtr& operator=(const UniquePtr&) = delete;
-
     UniquePtr(UniquePtr&& other);
     UniquePtr& operator=(UniquePtr&& other);
-
     ~UniquePtr();
 
     T operator*() const;
