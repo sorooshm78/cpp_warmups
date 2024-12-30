@@ -119,3 +119,16 @@ TEST(UniquePtrTest, OperatorBool) {
     EXPECT_FALSE(static_cast<bool>(ptr2));
 }
 
+
+TEST(UniquePtrTest, MoveAssignmentRefrence)
+{
+    UniquePtr<int> ptr(new int(30));
+    UniquePtr<int> ptr1;
+    UniquePtr<int> ptr2;
+
+    ptr2 = std::move(ptr1 = std::move(ptr));
+
+    EXPECT_EQ(*ptr2, 30);
+    EXPECT_EQ(ptr1.get(), nullptr);
+    EXPECT_EQ(ptr.get(), nullptr);
+}
