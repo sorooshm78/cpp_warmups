@@ -22,3 +22,4 @@
 --- 
 # More
 * [ ] slicing in C++
+* [ ] static in C and C++
