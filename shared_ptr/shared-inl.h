@@ -23,6 +23,9 @@ SharedPtr<T>::SharedPtr(SharedPtr& other)
 template <typename T>
 SharedPtr<T>& SharedPtr<T>::operator=(SharedPtr& other)
 {
+    if (this == &other)
+        return *this;
+
     pointer = other.pointer;
     count = other.count;
     (*count)++;

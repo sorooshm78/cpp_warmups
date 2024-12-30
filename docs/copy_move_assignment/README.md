@@ -77,3 +77,130 @@ Returning a reference from copy and move assignment operators in C++:
 - Prevents object slicing in inheritance hierarchies.
 
 By adhering to this practice, you ensure that your classes behave intuitively and perform efficiently within the C++ language framework.
+
+---
+
+Understood that the previous explanations were not clear enough. Let’s revisit the topic with more detailed explanations.
+
+### Your Expression:
+
+```cpp
+ptr2 = std::move(ptr1) = std::move(ptr);
+```
+
+In this expression, you have three pointers (or objects): `ptr`, `ptr1`, and `ptr2`. The goal of this code is to transfer resources (resources management) from `ptr` to `ptr1`, and then from `ptr1` to `ptr2`. However, you’ve noticed that instead of **move assignment**, a **copy assignment** is being invoked. Let’s explore why this happens.
+
+### How the Expression is Evaluated:
+
+1. **First, the Inner Operation is Executed:**
+   ```cpp
+   std::move(ptr1) = std::move(ptr);
+   ```
+   This part first moves `ptr` into `ptr1`. If everything is set up correctly, this should invoke a **move assignment**.
+
+2. **Then, the Result is Assigned to `ptr2`:**
+   ```cpp
+   ptr2 = (result of the previous step);
+   ```
+
+### Why a **Copy Assignment** Might Be Called:
+
+The main issue lies in how the `operator=` is implemented for your class. Let’s examine two scenarios:
+
+#### 1. **Returning a Reference (`return *this;`):**
+
+If the `operator=` correctly returns a reference to the object itself, then the chaining of assignments works properly, and **move assignment** is invoked as expected.
+
+**Example:**
+
+```cpp
+struct MyPointer {
+    MyPointer& operator=(MyPointer&& other) {
+        // Move resources from other to this object
+        return *this; // Return a reference to this object
+    }
+
+    // If a copy assignment operator is defined:
+    MyPointer& operator=(const MyPointer& other) {
+        // Copy resources from other to this object
+        return *this;
+    }
+};
+
+MyPointer ptr, ptr1, ptr2;
+ptr2 = std::move(ptr1) = std::move(ptr); // Both assignments are move assignments
+```
+
+In this case:
+- `std::move(ptr1) = std::move(ptr)` returns a reference to `ptr1`.
+- Then, `ptr2 = ptr1` is executed, which performs a **move assignment**.
+
+#### 2. **Returning by Value (`return *this;` as a Value):**
+
+If the `operator=` returns a copy of the object instead of a reference, the result of `std::move(ptr1) = std::move(ptr)` becomes a temporary object. Consequently, when you assign this temporary object to `ptr2`, a **copy assignment** is invoked instead of a **move assignment**.
+
+**Incorrect Example:**
+
+```cpp
+struct MyPointer {
+    MyPointer operator=(MyPointer&& other) { // Returns by value
+        // Move resources from other to this object
+        return *this; // Returns a copy
+    }
+};
+
+MyPointer ptr, ptr1, ptr2;
+ptr2 = std::move(ptr1) = std::move(ptr); // First move assignment, then copy assignment
+```
+
+In this scenario:
+- `std::move(ptr1) = std::move(ptr)` returns a temporary `MyPointer` object.
+- Then, `ptr2 = (temporary object)` invokes the **copy assignment** because it's assigning from a temporary (which behaves like an rvalue but is treated as an lvalue in this context).
+
+### How to Check and Fix the Issue:
+
+1. **Verify the `operator=` Implementation:**
+   Ensure that your move assignment operator returns a reference to the object (`*this`) rather than returning by value.
+
+   **Correct Implementation:**
+   ```cpp
+   struct MyPointer {
+       MyPointer& operator=(MyPointer&& other) {
+           if (this != &other) {
+               // Release current resources
+               // Transfer resources from other to this object
+           }
+           return *this; // Return a reference to this object
+       }
+   };
+   ```
+
+   **Incorrect Implementation:**
+   ```cpp
+   struct MyPointer {
+       MyPointer operator=(MyPointer&& other) { // Returns by value
+           if (this != &other) {
+               // Release current resources
+               // Transfer resources from other to this object
+           }
+           return *this; // Returns a copy
+       }
+   };
+   ```
+
+2. **Use Debugging Tools:**
+   Utilize debugging tools like `gdb` or `clang` to inspect which version of `operator=` is being called.
+
+3. **Proper Use of `= default` or `= delete`:**
+   If you’re using standard classes like `std::unique_ptr`, ensure that move semantics are correctly implemented and that the move assignment operators are properly defined.
+
+### Summary:
+
+A **copy assignment** is being called in the expression `ptr2 = std::move(ptr1) = std::move(ptr);` because the `operator=` is returning a temporary object by value instead of returning a reference to the object itself. This leads the outer assignment (`ptr2 = ...`) to perform a copy rather than a move.
+
+**To resolve this issue:**
+
+- **Ensure that the `operator=` for move assignment returns a reference to the object (`MyPointer&`).**
+- **Confirm that your class correctly implements move semantics, transferring resources safely and efficiently.**
+
+If you have any further questions or need more clarification, feel free to ask!

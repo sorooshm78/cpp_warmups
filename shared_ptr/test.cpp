@@ -149,7 +149,23 @@ TEST(SharedPtrTest, CopyAssignmentRefrence)
 }
 
 
-TEST(SharedPtrTest, MoveAssignmentRefrence)
+TEST(SharedPtrTest, MoveAssignmentRefrence1)
+{
+    SharedPtr<int> ptr(new int(30));
+    SharedPtr<int> ptr1;
+    SharedPtr<int> ptr2;
+
+    ptr2 = std::move(ptr1 = std::move(ptr));
+
+    EXPECT_EQ(*ptr2, 30);
+
+    EXPECT_EQ(ptr.use_count(), 0);
+    EXPECT_EQ(ptr1.use_count(), 0);
+    EXPECT_EQ(ptr2.use_count(), 1);
+}
+
+
+TEST(SharedPtrTest, MoveAssignmentRefrence2)
 {
     SharedPtr<int> ptr(new int(30));
     SharedPtr<int> ptr1;
