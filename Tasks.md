@@ -1,12 +1,12 @@
 # Todo
 * [X] return value of copy/move assigment with test
-* [ ] self assigment logic with test
-* [ ] first two lines of move assigment
-* [ ] noexcept and explicit implement
-* [ ] google test different classes int string user-define-type
+* [X] self assigment logic with test
+* [X] first two lines of move assigment
 * [ ] weak_ptr with rational example
-* [ ] thread safty class and implement and write test for show this 
+* [ ] thread safty class and implement and write test for show this
+* [ ] google test different classes int string user-define-type
 * [ ] behavior copy and move constructor
+* [ ] noexcept and explicit implement
 * [X] class method right const
 * [X] mutable keyword with example
 * [X] explicit keyword

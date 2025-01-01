@@ -179,3 +179,23 @@ TEST(SharedPtrTest, MoveAssignmentRefrence2)
     EXPECT_EQ(ptr1.use_count(), 2);
     EXPECT_EQ(ptr2.use_count(), 2);
 }
+
+
+TEST(SharedPtrTest, SelfCopyAssignment)
+{
+    SharedPtr<int> ptr(new int(30));
+
+    ptr = ptr;
+
+    EXPECT_EQ(*ptr, 30);
+}
+
+
+TEST(SharedPtrTest, SelfMoveAssignment)
+{
+    SharedPtr<int> ptr(new int(30));
+
+    ptr = std::move(ptr);
+
+    EXPECT_EQ(*ptr, 30);
+}

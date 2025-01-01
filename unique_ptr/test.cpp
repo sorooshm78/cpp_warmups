@@ -132,3 +132,13 @@ TEST(UniquePtrTest, MoveAssignmentRefrence)
     EXPECT_EQ(ptr1.get(), nullptr);
     EXPECT_EQ(ptr.get(), nullptr);
 }
+
+
+TEST(UniquePtrTest, SelfMoveAssignment)
+{
+    UniquePtr<int> ptr(new int(30));
+
+    ptr = std::move(ptr);
+
+    EXPECT_EQ(*ptr, 30);
+}
