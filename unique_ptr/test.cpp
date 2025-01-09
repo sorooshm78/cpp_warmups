@@ -1,52 +1,52 @@
 #include <gtest/gtest.h>
 #include "unique.h"
+#include "test_helper.h"
 
 
-class Something
+template <typename T>
+class UniquePtrTest : public ::testing::Test 
+{};
+
+typedef ::testing::Types<int, std::string> MyTypes;
+
+TYPED_TEST_SUITE(UniquePtrTest, MyTypes);
+
+
+TYPED_TEST(UniquePtrTest, ConstructionAndDereference)
 {
-public:
-    int returnZero()
-    {
-        return 0;
-    }
-};
+    UniquePtr<TypeParam> ptr(new TypeParam(TestHelper::getValue<TypeParam>()));
 
-
-TEST(UniquePtrTest, ConstructionAndDereference)
-{
-    UniquePtr<int> ptr(new int(10));
-
-    EXPECT_EQ(*ptr, 10);
+    EXPECT_EQ(*ptr, TestHelper::getValue<TypeParam>());
 }
 
 
-TEST(UniquePtrTest, MoveConstructor)
+TYPED_TEST(UniquePtrTest, MoveConstructor)
 {
-    UniquePtr<int> ptr1(new int(20));
-    UniquePtr<int> ptr2(std::move(ptr1));
+    UniquePtr<TypeParam> ptr1(new TypeParam(TestHelper::getValue<TypeParam>()));
+    UniquePtr<TypeParam> ptr2(std::move(ptr1));
 
     EXPECT_EQ(ptr1.get(), nullptr);
-    EXPECT_EQ(*ptr2, 20);
+    EXPECT_EQ(*ptr2, TestHelper::getValue<TypeParam>());
 }
 
 
-TEST(UniquePtrTest, MoveAssignment)
+TYPED_TEST(UniquePtrTest, MoveAssignment)
 {
-    UniquePtr<int> ptr1(new int(30));
-    UniquePtr<int> ptr2(new int(40));
+    UniquePtr<TypeParam> ptr1(new TypeParam(TestHelper::getValue<TypeParam>()));
+    UniquePtr<TypeParam> ptr2(new TypeParam(TestHelper::getValue<TypeParam>()));
 
     ptr2 = std::move(ptr1);
 
     EXPECT_EQ(ptr1.get(), nullptr);
-    EXPECT_EQ(*ptr2, 30);
+    EXPECT_EQ(*ptr2, TestHelper::getValue<TypeParam>());
 }
 
 
-TEST(UniquePtrTest, Reset)
+TYPED_TEST(UniquePtrTest, Reset)
 {
-    UniquePtr<int> ptr(new int(50));
+    UniquePtr<TypeParam> ptr(new TypeParam(TestHelper::getValue<TypeParam>()));
 
-    EXPECT_EQ(*ptr, 50);
+    EXPECT_EQ(*ptr, TestHelper::getValue<TypeParam>());
 
     ptr.reset();
 
@@ -54,65 +54,58 @@ TEST(UniquePtrTest, Reset)
 }
 
 
-TEST(UniquePtrTest, Release)
+TYPED_TEST(UniquePtrTest, Release)
 {
-    UniquePtr<int> ptr(new int(50));
+    UniquePtr<TypeParam> ptr(new TypeParam(TestHelper::getValue<TypeParam>()));
 
-    EXPECT_EQ(*ptr, 50);
+    EXPECT_EQ(*ptr, TestHelper::getValue<TypeParam>());
 
-    const int* ptr2 = ptr.release();
+    const TypeParam* ptr2 = ptr.release();
 
     EXPECT_EQ(ptr.get(), nullptr);
-    EXPECT_EQ(*ptr2, 50);
+    EXPECT_EQ(*ptr2, TestHelper::getValue<TypeParam>());
 
     delete ptr2;
 }
 
 
-TEST(UniquePtrTest, NotOperator)
+TYPED_TEST(UniquePtrTest, NotOperator)
 {
-    UniquePtr<int> ptr1(new int(60));
-    UniquePtr<int> ptr2(nullptr);
+    UniquePtr<TypeParam> ptr1(new TypeParam(TestHelper::getValue<TypeParam>()));
+    UniquePtr<TypeParam> ptr2(nullptr);
 
     EXPECT_FALSE(!ptr1);
     EXPECT_TRUE(!ptr2);
 }
 
 
-TEST(UniquePtrTest, Get)
+TYPED_TEST(UniquePtrTest, Get)
 {
-    UniquePtr<int> ptr(new int(70));
+    UniquePtr<TypeParam> ptr(new TypeParam(TestHelper::getValue<TypeParam>()));
 
-    EXPECT_EQ(*ptr.get(), 70);
-}
-
-TEST(UniquePtrTest, CallFunctionClass)
-{
-    UniquePtr<Something> ptr(new Something);
-
-    EXPECT_EQ(ptr.get()->returnZero(), 0);
+    EXPECT_EQ(*ptr.get(), TestHelper::getValue<TypeParam>());
 }
 
 
-TEST(UniquePtrTest, DereferencingNullPointer)
+TYPED_TEST(UniquePtrTest, DereferencingNullPointer)
 {
-    UniquePtr<Something> ptr(nullptr);
+    UniquePtr<TypeParam> ptr(nullptr);
 
     EXPECT_EQ(ptr.get(), nullptr);
 }
 
 
-TEST(UniquePtrTest, ExistingPointerAsInput)
+TYPED_TEST(UniquePtrTest, ExistingPointerAsInput)
 {
-    Something *something = new Something();
-    UniquePtr<Something> ptr(something);
+    TypeParam *something = new TypeParam();
+    UniquePtr<TypeParam> ptr(something);
 
     EXPECT_EQ(ptr.get(), something);
 }
 
 
-TEST(UniquePtrTest, OperatorBool) {
-    UniquePtr<int> ptr1(new int(42));
+TYPED_TEST(UniquePtrTest, OperatorBool) {
+    UniquePtr<TypeParam> ptr1(new TypeParam(TestHelper::getValue<TypeParam>()));
     EXPECT_TRUE(static_cast<bool>(ptr1));
 
     UniquePtr<int> ptr2(nullptr);
@@ -120,25 +113,25 @@ TEST(UniquePtrTest, OperatorBool) {
 }
 
 
-TEST(UniquePtrTest, MoveAssignmentRefrence)
+TYPED_TEST(UniquePtrTest, MoveAssignmentRefrence)
 {
-    UniquePtr<int> ptr(new int(30));
-    UniquePtr<int> ptr1;
-    UniquePtr<int> ptr2;
+    UniquePtr<TypeParam> ptr(new TypeParam(TestHelper::getValue<TypeParam>()));
+    UniquePtr<TypeParam> ptr1;
+    UniquePtr<TypeParam> ptr2;
 
     ptr2 = std::move(ptr1 = std::move(ptr));
 
-    EXPECT_EQ(*ptr2, 30);
+    EXPECT_EQ(*ptr2, TestHelper::getValue<TypeParam>());
     EXPECT_EQ(ptr1.get(), nullptr);
     EXPECT_EQ(ptr.get(), nullptr);
 }
 
 
-TEST(UniquePtrTest, SelfMoveAssignment)
+TYPED_TEST(UniquePtrTest, SelfMoveAssignment)
 {
-    UniquePtr<int> ptr(new int(30));
+    UniquePtr<TypeParam> ptr(new TypeParam(TestHelper::getValue<TypeParam>()));
 
     ptr = std::move(ptr);
 
-    EXPECT_EQ(*ptr, 30);
+    EXPECT_EQ(*ptr, TestHelper::getValue<TypeParam>());
 }
