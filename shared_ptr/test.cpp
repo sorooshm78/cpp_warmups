@@ -1,37 +1,49 @@
 #include <gtest/gtest.h>
 #include "shared.h"
+#include "test_helper.h"
 
 
-TEST(SharedPtrTest, DefaultConstructor)
+template <typename T>
+class SharedPtrTest : public ::testing::Test 
+{};
+
+typedef ::testing::Types<int, std::string> MyTypes;
+
+TYPED_TEST_SUITE(SharedPtrTest, MyTypes);
+
+
+TYPED_TEST(SharedPtrTest, DefaultConstructor)
 {
-    SharedPtr<int> ptr;
+    SharedPtr<TypeParam> ptr;
     EXPECT_EQ(ptr.get(), nullptr);
     EXPECT_EQ(ptr.use_count(), 0);
 }
 
 
-TEST(SharedPtrTest, ParameterizedConstructor)
+TYPED_TEST(SharedPtrTest, ParameterizedConstructor)
 {
-    SharedPtr<int> ptr(new int(42));
+    SharedPtr<TypeParam> ptr(new TypeParam(TestHelper::getValue<TypeParam>()));
     EXPECT_NE(ptr.get(), nullptr);
-    EXPECT_EQ(*ptr, 42);
+    EXPECT_EQ(*ptr, TestHelper::getValue<TypeParam>());
     EXPECT_EQ(ptr.use_count(), 1);
 }
 
-TEST(SharedPtrTest, CopyConstructor)
+
+TYPED_TEST(SharedPtrTest, CopyConstructor)
 {
-    SharedPtr<int> ptr1(new int(42));
-    SharedPtr<int> ptr2(ptr1);
+    SharedPtr<TypeParam> ptr1(new TypeParam(TestHelper::getValue<TypeParam>()));
+    SharedPtr<TypeParam> ptr2(ptr1);
     EXPECT_EQ(ptr1.get(), ptr2.get());
     EXPECT_EQ(*ptr1, *ptr2);
     EXPECT_EQ(ptr1.use_count(), 2);
     EXPECT_EQ(ptr2.use_count(), 2);
 }
 
-TEST(SharedPtrTest, CopyAssignment)
+
+TYPED_TEST(SharedPtrTest, CopyAssignment)
 {
-    SharedPtr<int> ptr1(new int(42));
-    SharedPtr<int> ptr2;
+    SharedPtr<TypeParam> ptr1(new TypeParam(TestHelper::getValue<TypeParam>()));
+    SharedPtr<TypeParam> ptr2;
     ptr2 = ptr1;
     EXPECT_EQ(ptr1.get(), ptr2.get());
     EXPECT_EQ(*ptr1, *ptr2);
@@ -39,43 +51,44 @@ TEST(SharedPtrTest, CopyAssignment)
     EXPECT_EQ(ptr2.use_count(), 2);
 }
 
-TEST(SharedPtrTest, MoveConstructor)
+
+TYPED_TEST(SharedPtrTest, MoveConstructor)
 {
-    SharedPtr<int> ptr1(new int(42));
-    SharedPtr<int> ptr2(std::move(ptr1));
+    SharedPtr<TypeParam> ptr1(new TypeParam(TestHelper::getValue<TypeParam>()));
+    SharedPtr<TypeParam> ptr2(std::move(ptr1));
     EXPECT_EQ(ptr1.get(), nullptr);
     EXPECT_EQ(ptr2.use_count(), 1);
-    EXPECT_EQ(*ptr2, 42);
+    EXPECT_EQ(*ptr2, TestHelper::getValue<TypeParam>());
 }
 
 
-TEST(SharedPtrTest, MoveAssignment)
+TYPED_TEST(SharedPtrTest, MoveAssignment)
 {
-    SharedPtr<int> ptr1(new int(42));
-    SharedPtr<int> ptr2;
+    SharedPtr<TypeParam> ptr1(new TypeParam(TestHelper::getValue<TypeParam>()));
+    SharedPtr<TypeParam> ptr2;
     ptr2 = std::move(ptr1);
     EXPECT_EQ(ptr1.get(), nullptr);
     EXPECT_EQ(ptr2.use_count(), 1);
-    EXPECT_EQ(*ptr2, 42);
+    EXPECT_EQ(*ptr2, TestHelper::getValue<TypeParam>());
 }
 
 
-TEST(SharedPtrTest, DestructorReducesCount)
+TYPED_TEST(SharedPtrTest, DestructorReducesCount)
 {
-    SharedPtr<int> ptr1(new int(42));
+    SharedPtr<TypeParam> ptr1(new TypeParam(TestHelper::getValue<TypeParam>()));
     {
-        SharedPtr<int> ptr2 = ptr1;
+        SharedPtr<TypeParam> ptr2 = ptr1;
         EXPECT_EQ(ptr1.use_count(), 2);
         EXPECT_EQ(ptr2.use_count(), 2);
     }
-    EXPECT_EQ(*ptr1, 42);
+    EXPECT_EQ(*ptr1, TestHelper::getValue<TypeParam>());
     EXPECT_EQ(ptr1.use_count(), 1);
 }
 
 
-TEST(SharedPtrTest, Reset)
+TYPED_TEST(SharedPtrTest, Reset)
 {
-    SharedPtr<int> ptr(new int(42));
+    SharedPtr<TypeParam> ptr(new TypeParam(TestHelper::getValue<TypeParam>()));
     EXPECT_NE(ptr.get(), nullptr);
     EXPECT_EQ(ptr.use_count(), 1);
     ptr.reset();
@@ -84,11 +97,11 @@ TEST(SharedPtrTest, Reset)
 }
 
 
-TEST(SharedPtrTest, UseCount)
+TYPED_TEST(SharedPtrTest, UseCount)
 {
-    SharedPtr<int> ptr1(new int(42));
-    SharedPtr<int> ptr2(ptr1);
-    SharedPtr<int> ptr3 = ptr2;
+    SharedPtr<TypeParam> ptr1(new TypeParam(TestHelper::getValue<TypeParam>()));
+    SharedPtr<TypeParam> ptr2(ptr1);
+    SharedPtr<TypeParam> ptr3 = ptr2;
 
     EXPECT_EQ(ptr1.use_count(), 3);
     EXPECT_EQ(ptr2.use_count(), 3);
@@ -106,58 +119,58 @@ TEST(SharedPtrTest, UseCount)
 }
 
 
-TEST(SharedPtrTest, BoolOperator)
+TYPED_TEST(SharedPtrTest, BoolOperator)
 {
-    SharedPtr<int> ptr1;
+    SharedPtr<TypeParam> ptr1;
     EXPECT_FALSE(ptr1);
 
-    SharedPtr<int> ptr2(new int(42));
+    SharedPtr<TypeParam> ptr2(new TypeParam(TestHelper::getValue<TypeParam>()));
     EXPECT_TRUE(ptr2);
 }
 
 
-TEST(SharedPtrTest, DereferenceOperators)
+TYPED_TEST(SharedPtrTest, DereferenceOperators)
 {
-    SharedPtr<int> ptr(new int(42));
-    EXPECT_EQ(*ptr, 42);
-    *ptr = 24;
-    EXPECT_EQ(*ptr, 24);
+    SharedPtr<TypeParam> ptr(new TypeParam(TestHelper::getValue<TypeParam>()));
+    EXPECT_EQ(*ptr, TestHelper::getValue<TypeParam>());
+    *ptr = TestHelper::getValue<TypeParam>();
+    EXPECT_EQ(*ptr, TestHelper::getValue<TypeParam>());
 }
 
 
-TEST(SharedPtrTest, NotOperator)
+TYPED_TEST(SharedPtrTest, NotOperator)
 {
-    SharedPtr<int> ptr1;
+    SharedPtr<TypeParam> ptr1;
     EXPECT_TRUE(!ptr1);
 
-    SharedPtr<int> ptr2(new int(42));
+    SharedPtr<TypeParam> ptr2(new TypeParam(TestHelper::getValue<TypeParam>()));
     EXPECT_FALSE(!ptr2);
 }
 
 
-TEST(SharedPtrTest, CopyAssignmentRefrence)
+TYPED_TEST(SharedPtrTest, CopyAssignmentRefrence)
 {
-    SharedPtr<int> ptr(new int(42));
-    SharedPtr<int> ptr1;
-    SharedPtr<int> ptr2;
+    SharedPtr<TypeParam> ptr(new TypeParam(TestHelper::getValue<TypeParam>()));
+    SharedPtr<TypeParam> ptr1;
+    SharedPtr<TypeParam> ptr2;
 
     ptr2 = ptr1 = ptr;
 
-    EXPECT_EQ(*ptr, 42);
-    EXPECT_EQ(*ptr1, 42);
-    EXPECT_EQ(*ptr2, 42);
+    EXPECT_EQ(*ptr, TestHelper::getValue<TypeParam>());
+    EXPECT_EQ(*ptr1, TestHelper::getValue<TypeParam>());
+    EXPECT_EQ(*ptr2, TestHelper::getValue<TypeParam>());
 }
 
 
-TEST(SharedPtrTest, MoveAssignmentRefrence1)
+TYPED_TEST(SharedPtrTest, MoveAssignmentRefrence1)
 {
-    SharedPtr<int> ptr(new int(30));
-    SharedPtr<int> ptr1;
-    SharedPtr<int> ptr2;
+    SharedPtr<TypeParam> ptr(new TypeParam(TestHelper::getValue<TypeParam>()));
+    SharedPtr<TypeParam> ptr1;
+    SharedPtr<TypeParam> ptr2;
 
     ptr2 = std::move(ptr1 = std::move(ptr));
 
-    EXPECT_EQ(*ptr2, 30);
+    EXPECT_EQ(*ptr2, TestHelper::getValue<TypeParam>());
 
     EXPECT_EQ(ptr.use_count(), 0);
     EXPECT_EQ(ptr1.use_count(), 0);
@@ -165,15 +178,15 @@ TEST(SharedPtrTest, MoveAssignmentRefrence1)
 }
 
 
-TEST(SharedPtrTest, MoveAssignmentRefrence2)
+TYPED_TEST(SharedPtrTest, MoveAssignmentRefrence2)
 {
-    SharedPtr<int> ptr(new int(30));
-    SharedPtr<int> ptr1;
-    SharedPtr<int> ptr2;
+    SharedPtr<TypeParam> ptr(new TypeParam(TestHelper::getValue<TypeParam>()));
+    SharedPtr<TypeParam> ptr1;
+    SharedPtr<TypeParam> ptr2;
 
     ptr2 = std::move(ptr1) = std::move(ptr);
 
-    EXPECT_EQ(*ptr2, 30);
+    EXPECT_EQ(*ptr2, TestHelper::getValue<TypeParam>());
 
     EXPECT_EQ(ptr.use_count(), 0);
     EXPECT_EQ(ptr1.use_count(), 2);
@@ -181,21 +194,21 @@ TEST(SharedPtrTest, MoveAssignmentRefrence2)
 }
 
 
-TEST(SharedPtrTest, SelfCopyAssignment)
+TYPED_TEST(SharedPtrTest, SelfCopyAssignment)
 {
-    SharedPtr<int> ptr(new int(30));
+    SharedPtr<TypeParam> ptr(new TypeParam( TestHelper::getValue<TypeParam>()));
 
     ptr = ptr;
 
-    EXPECT_EQ(*ptr, 30);
+    EXPECT_EQ(*ptr,  TestHelper::getValue<TypeParam>());
 }
 
 
-TEST(SharedPtrTest, SelfMoveAssignment)
+TYPED_TEST(SharedPtrTest, SelfMoveAssignment)
 {
-    SharedPtr<int> ptr(new int(30));
+    SharedPtr<TypeParam> ptr(new TypeParam(TestHelper::getValue<TypeParam>()));
 
     ptr = std::move(ptr);
 
-    EXPECT_EQ(*ptr, 30);
+    EXPECT_EQ(*ptr,  TestHelper::getValue<TypeParam>());
 }
