@@ -4,21 +4,21 @@ private:
     T* pointer;
 
 public:
-    UniquePtr();
-    UniquePtr(T* pointer);
+    UniquePtr() noexcept;
+    explicit UniquePtr(T* pointer) noexcept;
     UniquePtr(const UniquePtr&) = delete;
     UniquePtr& operator=(const UniquePtr&) = delete;
-    UniquePtr(UniquePtr&& other);
-    UniquePtr& operator=(UniquePtr&& other);
-    ~UniquePtr();
+    UniquePtr(UniquePtr&& other) noexcept;
+    UniquePtr& operator=(UniquePtr&& other) noexcept;
+    ~UniquePtr() noexcept;
 
-    T operator*() const;
-    T* operator->() const;
-    bool operator!() const;
-    operator bool() const;
-    T* get() const;
-    void reset();
-    T* release();
+    T operator*() const noexcept;
+    T* operator->() const noexcept;
+    bool operator!() const noexcept;
+    explicit operator bool() const noexcept;
+    T* get() const noexcept;
+    void reset() noexcept;
+    T* release() noexcept;
 };
 
 #include "unique-inl.h"

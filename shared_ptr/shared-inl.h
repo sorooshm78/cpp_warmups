@@ -1,19 +1,19 @@
 template <typename T>
-SharedPtr<T>::SharedPtr()
+SharedPtr<T>::SharedPtr() noexcept
 {
     this->pointer = nullptr;
     count = new int(0);
 }
 
 template <typename T>
-SharedPtr<T>::SharedPtr(T* const pointer)
+SharedPtr<T>::SharedPtr(T* const pointer) noexcept
 {
     this->pointer = pointer;
     count = new int(1);
 }
 
 template <typename T>
-SharedPtr<T>::SharedPtr(SharedPtr& other)
+SharedPtr<T>::SharedPtr(SharedPtr& other) noexcept
 {
     pointer = other.pointer;
     count = other.count;
@@ -21,7 +21,7 @@ SharedPtr<T>::SharedPtr(SharedPtr& other)
 }
 
 template <typename T>
-SharedPtr<T>& SharedPtr<T>::operator=(SharedPtr& other)
+SharedPtr<T>& SharedPtr<T>::operator=(SharedPtr& other) noexcept
 {
     if (this == &other)
         return *this;
@@ -33,7 +33,7 @@ SharedPtr<T>& SharedPtr<T>::operator=(SharedPtr& other)
 }
 
 template <typename T>
-SharedPtr<T>::SharedPtr(SharedPtr&& other)
+SharedPtr<T>::SharedPtr(SharedPtr&& other) noexcept
 {
     count = other.count;
     pointer = other.pointer;
@@ -43,7 +43,7 @@ SharedPtr<T>::SharedPtr(SharedPtr&& other)
 }
 
 template <typename T>
-SharedPtr<T>& SharedPtr<T>::operator=(SharedPtr&& other)
+SharedPtr<T>& SharedPtr<T>::operator=(SharedPtr&& other) noexcept
 {
     if (this == &other)
         return *this;
@@ -64,7 +64,7 @@ SharedPtr<T>& SharedPtr<T>::operator=(SharedPtr&& other)
 }
 
 template <typename T>
-SharedPtr<T>::~SharedPtr()
+SharedPtr<T>::~SharedPtr() noexcept
 {
     if (count && --(*count) == 0)
     {
@@ -74,37 +74,37 @@ SharedPtr<T>::~SharedPtr()
 }
 
 template <typename T>
-T& SharedPtr<T>::operator*() const
+T& SharedPtr<T>::operator*() const noexcept
 {
     return *pointer;
 }
 
 template <typename T>
-T* SharedPtr<T>::operator->() const
+T* SharedPtr<T>::operator->() const noexcept
 {
     return pointer;
 }
 
 template <typename T>
-bool SharedPtr<T>::operator!() const
+bool SharedPtr<T>::operator!() const noexcept
 {
     return pointer == nullptr;
 }
 
 template <typename T>
-SharedPtr<T>::operator bool() const
+SharedPtr<T>::operator bool() const noexcept
 {
     return pointer != nullptr;
 }
 
 template <typename T>
-T* SharedPtr<T>::get() const
+T* SharedPtr<T>::get() const noexcept
 {
     return pointer;
 }
 
 template <typename T>
-void SharedPtr<T>::reset()
+void SharedPtr<T>::reset() noexcept
 {
     if (count && --(*count) == 0)
     {
@@ -116,7 +116,7 @@ void SharedPtr<T>::reset()
 }
 
 template <typename T>
-int SharedPtr<T>::use_count() const
+int SharedPtr<T>::use_count() const noexcept
 {
     return count ? *count : 0;
 }

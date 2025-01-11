@@ -5,8 +5,8 @@
 * [X] weak_ptr with rational example
 * [ ] thread safty class and implement and write test for show this
 * [X] google test different classes int string user-define-type
-* [ ] behavior copy and move constructor
-* [ ] noexcept and explicit implement
+* [X] behavior copy and move constructor
+* [X] noexcept and explicit implement
 * [X] class method right const
 * [X] mutable keyword with example
 * [X] explicit keyword
