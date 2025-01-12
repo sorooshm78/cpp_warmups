@@ -1,3 +1,4 @@
+#include <thread>
 #include <gtest/gtest.h>
 #include "shared.h"
 #include "test_helper.h"
@@ -196,7 +197,7 @@ TYPED_TEST(SharedPtrTest, MoveAssignmentRefrence2)
 
 TYPED_TEST(SharedPtrTest, SelfCopyAssignment)
 {
-    SharedPtr<TypeParam> ptr(new TypeParam( TestHelper::getValue<TypeParam>()));
+    SharedPtr<TypeParam> ptr(new TypeParam(TestHelper::getValue<TypeParam>()));
 
     ptr = ptr;
 
@@ -211,4 +212,28 @@ TYPED_TEST(SharedPtrTest, SelfMoveAssignment)
     ptr = std::move(ptr);
 
     EXPECT_EQ(*ptr,  TestHelper::getValue<TypeParam>());
+}
+
+
+template <typename T>
+void thread_func_copy(SharedPtr<T> ptr, int copies) {
+    for (int i = 0; i < copies; ++i) {
+        SharedPtr<T> local_ptr = ptr;
+    }
+}
+
+
+TYPED_TEST(SharedPtrTest, ThreadSafty)
+{
+    SharedPtr<TypeParam> ptr(new TypeParam(TestHelper::getValue<TypeParam>()));
+    const int num_copies1 = 100000;
+    const int num_copies2 = 500000;
+
+    std::thread thread1(thread_func_copy<TypeParam>, ptr, num_copies1);
+    std::thread thread2(thread_func_copy<TypeParam>, ptr, num_copies2);
+
+    thread1.join();
+    thread2.join();
+
+    EXPECT_EQ(ptr.use_count(), 1);
 }
