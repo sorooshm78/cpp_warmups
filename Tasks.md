@@ -3,7 +3,7 @@
 * [X] self assigment logic with test
 * [X] first two lines of move assigment
 * [X] weak_ptr with rational example
-* [ ] thread safty class and implement and write test for show this
+* [X] thread safty class and implement and write test for show this
 * [X] google test different classes int string user-define-type
 * [X] behavior copy and move constructor
 * [X] noexcept and explicit implement
