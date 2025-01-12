@@ -1,5 +1,6 @@
 # Todo
-* [X] return value of copy/move assigment with test
+* [ ] return value of copy/move assigment with test
+* [ ] extention of vscode in AI
 * [X] self assigment logic with test
 * [X] first two lines of move assigment
 * [X] weak_ptr with rational example
@@ -18,6 +19,7 @@
 * [ ] implement vector of all copy and move and ctor dtor
 * [ ] array of unique_ptr
 * [ ] input deleter 
+* [ ] atomic lock mechanism
 
 --- 
 # More

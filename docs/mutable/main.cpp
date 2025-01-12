@@ -1,19 +1,37 @@
 #include <iostream>
 
-class MyClass {
+
+using namespace std;
+
+
+class ExampleMutable {
 public:
-    int value;
+    ExampleMutable(int val) : value(val), cache(0) {}
 
-    MyClass(int v) : value(v) {}
-
-    void display() const {
-        std::cout << "Value: " << value << std::endl;
+    // A const member function
+    int getValue() const {
+        // If cache is not mutable this line is compiler error
+        // Even though the function is const, we can modify 'cache' because it's mutable
+        cache = value * 2;
+        return value;
     }
+
+    // Another const member function
+    int getCache() const {
+        return cache;
+    }
+
+private:
+    int value;
+    mutable int cache; // 'cache' can be modified in const functions
 };
 
+
 int main() {
-    const MyClass obj(5);
-    obj.display();
-//     obj.value = 10;
+    const ExampleMutable ex(10);
+    
+    std::cout << "Value: " << ex.getValue() << std::endl; // Modifies 'cache'
+    std::cout << "Cache: " << ex.getCache() << std::endl; // Accesses 'cache'
+
     return 0;
 }
