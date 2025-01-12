@@ -327,3 +327,6 @@ if (auto sharedParent = weakParent.lock()) {
 - Use `std::weak_ptr` when you need to reference an object without affecting its lifetime, especially in scenarios where circular dependencies might occur.
 
 By appropriately using `std::weak_ptr`, you can write more robust and memory-efficient C++ applications.
+
+
+![](https://blog.kakaocdn.net/dn/dUsYtG/btrH5dCQBxq/SOnwOtYjMOwIZNHVAXENg0/img.png)
