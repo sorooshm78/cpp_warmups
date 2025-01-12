@@ -2,14 +2,14 @@ template <typename T>
 SharedPtr<T>::SharedPtr() noexcept
 {
     this->pointer = nullptr;
-    count = new int(0);
+    count = new std::atomic<int>(0);
 }
 
 template <typename T>
 SharedPtr<T>::SharedPtr(T* const pointer) noexcept
 {
     this->pointer = pointer;
-    count = new int(1);
+    count = new std::atomic<int>(1);
 }
 
 template <typename T>
@@ -17,7 +17,7 @@ SharedPtr<T>::SharedPtr(SharedPtr& other) noexcept
 {
     pointer = other.pointer;
     count = other.count;
-    (*count)++;
+    count->fetch_add(1, std::memory_order_relaxed);
 }
 
 template <typename T>
@@ -28,7 +28,7 @@ SharedPtr<T>& SharedPtr<T>::operator=(SharedPtr& other) noexcept
 
     pointer = other.pointer;
     count = other.count;
-    (*count)++;
+    count->fetch_add(1, std::memory_order_relaxed);
     return *this;
 }
 
@@ -48,7 +48,7 @@ SharedPtr<T>& SharedPtr<T>::operator=(SharedPtr&& other) noexcept
     if (this == &other)
         return *this;
 
-    if (count && --(*count) == 0)
+    if (count && count->fetch_sub(1, std::memory_order_acq_rel) == 0)
     {
         delete pointer;
         delete count;
@@ -66,7 +66,7 @@ SharedPtr<T>& SharedPtr<T>::operator=(SharedPtr&& other) noexcept
 template <typename T>
 SharedPtr<T>::~SharedPtr() noexcept
 {
-    if (count && --(*count) == 0)
+    if (count && count->fetch_sub(1, std::memory_order_acq_rel) == 0)
     {
         delete pointer;
         delete count;
@@ -106,7 +106,7 @@ T* SharedPtr<T>::get() const noexcept
 template <typename T>
 void SharedPtr<T>::reset() noexcept
 {
-    if (count && --(*count) == 0)
+    if (count && count->fetch_sub(1, std::memory_order_acq_rel) == 0)
     {
         delete pointer;
         delete count;
@@ -118,5 +118,5 @@ void SharedPtr<T>::reset() noexcept
 template <typename T>
 int SharedPtr<T>::use_count() const noexcept
 {
-    return count ? *count : 0;
+    return count ? count->load(std::memory_order_relaxed) : 0;
 }

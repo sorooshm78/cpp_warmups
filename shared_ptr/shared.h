@@ -1,9 +1,11 @@
+#include <atomic>
+
 template <typename T>
 class SharedPtr
 {
 private:
     T* pointer;
-    int* count;
+    std::atomic<int>* count;
 
 public:
     SharedPtr() noexcept;
