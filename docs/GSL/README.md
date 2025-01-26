@@ -1,12 +1,12 @@
 # Guideline Support Library
 
-## link
+# link
 * [microsoft-GSL](https://github.com/microsoft/GSL)
 * [c-core-guideline-the-guidelines-support-library](https://www.modernescpp.com/index.php/c-core-guideline-the-guidelines-support-library/)
 * [CppCoreGuidelines](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#gsl-guidelines-support-library)
 * [cpp-core-guidelines-docs.vercel.app](https://cpp-core-guidelines-docs.vercel.app/gsl)
 
-## gsl::owner<T*>
+# gsl::owner<T*>
 `gsl::owner<T*>` is a utility provided by the [Guidelines Support Library (GSL)](https://github.com/microsoft/GSL), a library that implements some of the C++ Core Guidelines. The primary purpose of `gsl::owner` is to explicitly indicate ownership of a raw pointer in the code. This helps improve code readability and conveys intent, making it clear when a function or class is responsible for managing the lifetime of a pointer.
 
 Here’s a breakdown:
@@ -106,7 +106,7 @@ This example highlights that once ownership is transferred to a smart pointer, y
 
 When possible, prefer smart pointers for automatic memory management. Use `gsl::owner` in cases where you must work with raw pointers but want to make ownership intentions explicit.
 
-## Expects() and Ensures()
+# Expects() and Ensures()
 `Expects()` and `Ensures()` are part of the **Guidelines Support Library (GSL)**, designed to help you write safer, more self-documenting code. They are used for **contract programming** by defining **preconditions** (`Expects`) and **postconditions** (`Ensures`) for functions.
 
 ---
@@ -209,3 +209,90 @@ int main() {
 4. **Runtime Behavior**: Violations terminate the program unless you configure a custom handler. 
 
 Together, they help make code more robust, self-explanatory, and easier to debug!
+
+# gsl::span
+In the **Guideline Support Library (GSL)** for C++, `gsl::span` is a lightweight, non-owning view of an array or contiguous sequence of elements. It allows safe access to elements in an array or container without the need for copying or managing ownership. This is particularly useful when you want to pass a "view" of a sequence to a function without transferring ownership.
+
+`gsl::view` is sometimes referred to as a concept rather than a specific type. In this context, a **view** represents a way of accessing or interacting with data without copying it. The primary implementation in GSL is `gsl::span`.
+
+---
+
+### **Key Features of gsl::span**
+1. **Non-owning**: It does not manage the lifetime of the underlying data.
+2. **Contiguous sequence**: Works with arrays, `std::vector`, or other containers that store data contiguously in memory.
+3. **Bounds-safe**: Provides access with bounds checking (when compiled with `GSL_THROW_ON_CONTRACT_VIOLATION`).
+
+---
+
+### **Syntax**
+```cpp
+#include <gsl/gsl>
+
+gsl::span<T> view;
+```
+
+- `T`: Type of elements in the span (can be `const` for read-only views).
+
+---
+
+### **Example: Basic Usage of gsl::span**
+
+Here’s an example of how to use `gsl::span` as a view:
+
+```cpp
+#include <iostream>
+#include <vector>
+#include <gsl/gsl>
+
+void print_span(gsl::span<const int> data) {
+    for (auto value : data) {
+        std::cout << value << " ";
+    }
+    std::cout << std::endl;
+}
+
+int main() {
+    // Example 1: Using a C-style array
+    int arr[] = {1, 2, 3, 4, 5};
+    gsl::span<int> span_from_array(arr);  // Create a view over the array
+    print_span(span_from_array);
+
+    // Example 2: Using std::vector
+    std::vector<int> vec = {10, 20, 30, 40, 50};
+    gsl::span<int> span_from_vector(vec);  // Create a view over the vector
+    print_span(span_from_vector);
+
+    // Example 3: Using part of a vector
+    gsl::span<int> span_subvector(vec.data() + 1, 3);  // A subrange view
+    print_span(span_subvector);
+
+    return 0;
+}
+```
+
+---
+
+### **Explanation of the Code**
+1. **C-style Array**:
+   - `span_from_array` creates a view over the array `arr` without copying it.
+2. **std::vector**:
+   - `span_from_vector` creates a view over the vector `vec`. Any modification to the vector reflects in the span, as it directly references the same memory.
+3. **Subrange**:
+   - You can specify a subrange of data for the span by passing a pointer and size (e.g., `vec.data() + 1, 3` views `vec[1]` to `vec[3]`).
+
+---
+
+### **Key Notes**
+- `gsl::span` ensures **type safety** and helps avoid dangling pointers.
+- It is useful for functions where you don't want to specify a particular container type (like `std::vector` or arrays), ensuring flexibility.
+- Bounds checking is performed in debug builds to ensure safety.
+
+---
+
+### **When to Use gsl::span?**
+1. When passing subranges of data to functions.
+2. To avoid unnecessary copying of large datasets.
+3. When working with raw arrays in a safer way.
+4. To make code container-agnostic, so it works with arrays, vectors, etc.
+
+This simplifies programming, ensures bounds safety, and improves performance when managing large datasets.
