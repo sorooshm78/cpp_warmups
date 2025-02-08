@@ -254,3 +254,36 @@ int main() {
 - A non-const member function **cannot** be called on a const object.
 - Using const-correctness in C++ improves code safety, maintainability, and clarity by making your intentions explicit and allowing the compiler to catch unintended modifications.
 
+Example
+```
+#include <iostream>
+
+class Counter {
+private:
+    int count;
+
+public:
+    Counter(int start = 0) : count(start) {}
+
+    int getCount() const {
+        return count;
+    }
+
+    void increment() {
+        ++count;
+    }
+};
+
+int main() {
+    Counter c1(10);
+    std::cout << "Initial count: " << c1.getCount() << std::endl; // OK
+    c1.increment();
+    std::cout << "After increment: " << c1.getCount() << std::endl; // OK
+
+    const Counter c2(100);
+    std::cout << "Const counter: " << c2.getCount() << std::endl; // OK
+    //  c2.increment();  // ERROR: cannot call non-const function on a const object
+
+    return 0;
+}
+```

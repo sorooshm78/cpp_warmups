@@ -128,3 +128,33 @@ int main() {
 ## Conclusion
 
 The `explicit` keyword is a valuable tool in C++ for controlling how and when objects of a class are created through conversions. By using `explicit`, you can make your code safer, more predictable, and easier to understand. It's especially important in large codebases or APIs where implicit conversions might lead to subtle and hard-to-find bugs.
+
+Example
+```
+#include <iostream>
+
+class Fraction {
+public:
+    int numerator;
+    int denominator;
+
+    // Single-argument constructor
+    Fraction(int num, int denom = 1) : numerator(num), denominator(denom) {}
+
+    void display() const {
+        std::cout << numerator << "/" << denominator << std::endl;
+    }
+};
+
+void printFraction(const Fraction& frac) {
+    frac.display();
+}
+
+int main() {
+    Fraction f1 = 5; // Implicit conversion from int to Fraction
+    f1.display();    // Outputs: 5/1
+
+    printFraction(10); // Implicitly converts 10 to Fraction(10, 1)
+    return 0;
+}
+```
