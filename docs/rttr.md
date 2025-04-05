@@ -241,3 +241,178 @@ Let's say we have the following class `Person` and we want to dynamically retrie
 - If the type name is incorrect or the type hasn’t been registered, `get_by_name` will return an invalid `rttr::type`, and you should check the validity using `is_valid()`.
 
 In conclusion, `rttr::type::get_by_name` is a powerful feature that enables dynamic type resolution in C++ using the RTTR library. It allows you to retrieve types based on their names at runtime, making it useful in various flexible and dynamic applications such as plugin systems, serialization, and scripting interfaces.
+
+---------------------------------------------------------------------
+
+## get_method and get_parameter_infos
+In RTTR (Run-Time Type Reflection), `get_method` and `get_parameter_infos` are used to inspect and interact with the methods of a class dynamically at runtime. These functions allow you to retrieve information about the methods of a class, including the parameters of each method, and then call those methods or extract details about their signatures.
+
+### `get_method`
+The `get_method` function is used to retrieve a method by its name from a class type. This allows you to inspect and invoke methods dynamically.
+
+#### Syntax:
+```cpp
+rttr::method rttr::type::get_method(const std::string& name) const;
+```
+
+#### Parameters:
+- **name**: The name of the method you want to retrieve.
+
+#### Return Value:
+- Returns an `rttr::method` object representing the method with the specified name. If the method is not found, it returns an invalid `rttr::method`.
+
+### `get_parameter_infos`
+Once you have obtained a `method` object using `get_method`, you can call `get_parameter_infos` on the method to get detailed information about the parameters that the method takes. This includes the parameter names, types, and their default values if available.
+
+#### Syntax:
+```cpp
+std::vector<rttr::parameter_info> rttr::method::get_parameter_infos() const;
+```
+
+#### Return Value:
+- Returns a `std::vector` of `rttr::parameter_info` objects, which provide details about each parameter of the method.
+
+#### Example:
+
+Let's go through a complete example to understand how `get_method` and `get_parameter_infos` work.
+
+### Example Code:
+
+```cpp
+#include <rttr/registration>
+#include <iostream>
+#include <string>
+#include <vector>
+
+// Define a class with methods
+class MyClass {
+public:
+    MyClass() = default;
+
+    // Method with no parameters
+    void greet() {
+        std::cout << "Hello!" << std::endl;
+    }
+
+    // Method with parameters
+    void setPersonInfo(std::string name, int age) {
+        std::cout << "Name: " << name << ", Age: " << age << std::endl;
+    }
+
+    // Method with default parameters
+    void displayInfo(std::string city = "Unknown", int year = 2023) {
+        std::cout << "City: " << city << ", Year: " << year << std::endl;
+    }
+};
+
+// Register the class for RTTR reflection
+RTTR_REGISTRATION {
+    rttr::registration::class_<MyClass>("MyClass")
+        .constructor<>()
+        .method("greet", &MyClass::greet)
+        .method("setPersonInfo", &MyClass::setPersonInfo)
+        .method("displayInfo", &MyClass::displayInfo);
+}
+
+int main() {
+    // Retrieve the type of MyClass
+    rttr::type t = rttr::type::get<MyClass>();
+
+    // Get the "setPersonInfo" method by name
+    rttr::method method = t.get_method("setPersonInfo");
+
+    // Check if the method is valid
+    if (method.is_valid()) {
+        std::cout << "Method found: " << method.get_name() << std::endl;
+
+        // Get parameter info for the "setPersonInfo" method
+        std::vector<rttr::parameter_info> params = method.get_parameter_infos();
+
+        // Print parameter details
+        for (const auto& param : params) {
+            std::cout << "Parameter: " << param.get_name() << ", Type: " << param.get_type().get_name() << std::endl;
+        }
+
+        // Invoke the method dynamically with parameters
+        MyClass obj;
+        method.invoke(obj, "John", 30);
+    } else {
+        std::cout << "Method not found." << std::endl;
+    }
+
+    // Get the "displayInfo" method by name
+    method = t.get_method("displayInfo");
+
+    if (method.is_valid()) {
+        std::cout << "\nMethod found: " << method.get_name() << std::endl;
+
+        // Get parameter info for "displayInfo" method
+        std::vector<rttr::parameter_info> params = method.get_parameter_infos();
+        for (const auto& param : params) {
+            std::cout << "Parameter: " << param.get_name() << ", Type: " << param.get_type().get_name() << std::endl;
+        }
+
+        // Invoke the method with default parameters
+        method.invoke(obj);
+    } else {
+        std::cout << "Method not found." << std::endl;
+    }
+
+    return 0;
+}
+```
+
+### Explanation of the Code:
+
+1. **Class Definition:**
+   - We define a class `MyClass` with three methods:
+     - `greet()`: No parameters.
+     - `setPersonInfo(std::string, int)`: Takes two parameters (name and age).
+     - `displayInfo(std::string, int)`: Has two parameters with default values (city and year).
+
+2. **RTTR Registration:**
+   - We register the class `MyClass` and its methods (`greet`, `setPersonInfo`, `displayInfo`) using the `RTTR_REGISTRATION` macro.
+
+3. **Using `get_method`:**
+   - We retrieve the `setPersonInfo` method by calling `get_method("setPersonInfo")` on the `rttr::type` object of `MyClass`.
+   - If the method is valid, we print the method name and its parameters using `get_parameter_infos`.
+
+4. **Inspecting Parameters with `get_parameter_infos`:**
+   - For the `setPersonInfo` method, we use `method.get_parameter_infos()` to retrieve information about the parameters.
+   - We then loop through the parameters and print their names and types.
+   - We invoke the method dynamically with the arguments `"John"` and `30` using `method.invoke`.
+
+5. **Output:**
+
+   ```plaintext
+   Method found: setPersonInfo
+   Parameter: name, Type: string
+   Parameter: age, Type: int
+   Name: John, Age: 30
+
+   Method found: displayInfo
+   Parameter: city, Type: string
+   Parameter: year, Type: int
+   City: Unknown, Year: 2023
+   ```
+
+### Key Concepts:
+
+- **`get_method`:** This retrieves a method by its name from a class type. You can use it to dynamically inspect or invoke methods.
+  
+- **`get_parameter_infos`:** This retrieves a list of `parameter_info` objects, which contain details about the parameters of the method (e.g., name, type). This allows you to dynamically analyze the method's signature and pass appropriate arguments when invoking it.
+
+- **Method Invocation:** Once you have the `method` object, you can invoke it dynamically on an object using the `invoke` function.
+
+### Use Cases:
+
+- **Dynamic Method Invocation:** If you need to invoke a method based on user input or dynamic conditions, `get_method` and `get_parameter_infos` provide a way to interact with methods without knowing their signatures at compile time.
+- **Plugins or Scripting Systems:** You can use reflection to call methods from external plugins or script files without having to hard-code their names and signatures.
+- **Serialization and Deserialization:** These functions can help automatically map method parameters when serializing or deserializing objects.
+
+### Considerations:
+
+- **Performance:** Reflection (and dynamic method invocation) introduces some overhead, so it’s not ideal for performance-critical parts of your application.
+- **Method Name Matching:** The method name provided to `get_method` must exactly match the registered name, including case sensitivity.
+
+In summary, `get_method` and `get_parameter_infos` in RTTR allow you to dynamically inspect methods and their parameters in C++ and invoke them without needing to know their details at compile time. This is useful in dynamic systems, such as plugins, scripting, and reflection-based frameworks.
