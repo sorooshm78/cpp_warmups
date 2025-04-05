@@ -1,5 +1,7 @@
 [Building Your First Service with Apache Thrift: A Practical Tutorial](https://medium.com/@tahir.rauf/building-your-first-service-with-apache-thrift-a-practical-tutorial-1e591c4af8d9)
 
+[Apache Thrift Tutorial](https://www.tutorialspoint.com/apache-thrift/index.htm)
+
 Apache Thrift is a software framework designed to facilitate cross-language service development. It provides what is essentially a remote-procedure call interface to enable a client application to access services from a service — which can be written in the-same, or another language.
 
 It provides a simple interface definition language (IDL) to define data types and service interfaces in a language-neutral way which are stored as .thrift files. Using these definitions, Thrift’s code generation engine can automatically generate client and server code for a wide variety of programming languages, making it easier to build distributed systems whose components communicate seamlessly, regardless of the underlying language they are written in.
