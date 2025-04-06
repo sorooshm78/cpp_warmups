@@ -704,3 +704,127 @@ SharedPtr name: Charlie
 | `std::unique_ptr<User>` | `std::unique_ptr<User>`      | `User`                           |
 
 ---
+
+------------------------------------------------
+
+The two expressions `.constructor<String&>()` and `.constructor(&A::Method)` serve very different purposes in the RTTR (Run-Time Type Reflection) registration system. Here's a detailed explanation of the difference, followed by a full example:
+
+### 1. **`constructor<String&>()`**
+   - This registers a **constructor** for a class that accepts a parameter of type `String&`, meaning it takes a **reference** to an existing `String` object (like `std::string` or another string type) as an argument.
+   - This allows RTTR to know that it can create an object of that class by passing a reference to a `String` object.
+
+### 2. **`constructor(&A::Method)`**
+   - This registers a **constructor** that uses a **static method** `A::Method` as a factory function to create instances of the class `A`. 
+   - The method `A::Method` must be static, and it is called by RTTR to create an instance of class `A`. This is often used for **factory methods**, where an object is created in a specific way (often returning a pointer or smart pointer).
+
+### Key Differences:
+- **`constructor<String&>()`** registers a constructor that takes a `String&` as a parameter, which is a typical constructor for initializing an object with a value.
+- **`constructor(&A::Method)`** registers a **static factory method** as a constructor, where you can create an instance using a specific method rather than a standard constructor.
+
+### Full Example to Illustrate the Difference:
+
+Let’s consider a simple example with two classes, `A` and `B`. `A` will have a constructor that takes a `String&` reference, while `B` will have a static method that serves as a factory for creating instances of `B`.
+
+#### Code Example:
+
+```cpp
+#include <iostream>
+#include <rttr/registration>
+#include <string>
+
+class A {
+public:
+    // Constructor that takes a String reference
+    A(std::string& str) : str_(str) {
+        std::cout << "A constructed with: " << str_ << std::endl;
+    }
+
+private:
+    std::string str_;
+};
+
+class B {
+public:
+    // Static factory method
+    static B* create(const std::string& str) {
+        std::cout << "Creating B using factory method with: " << str << std::endl;
+        return new B(str);
+    }
+
+    // Private constructor (so it can't be directly created without the factory method)
+private:
+    B(const std::string& str) : str_(str) {}
+
+    std::string str_;
+};
+
+// RTTR registration
+RTTR_REGISTRATION
+{
+    // Register class A with a constructor that takes a String reference
+    rttr::registration::class_<A>("A")
+        .constructor<std::string&>();  // Constructor that takes a reference to a std::string
+    
+    // Register class B with a static factory method 'create' as its constructor
+    rttr::registration::class_<B>("B")
+        .constructor(&B::create);  // Using the static factory method 'create' to create an instance of B
+}
+
+int main() {
+    // Create a string to pass to the constructor
+    std::string str = "Hello, RTTR!";
+
+    // Create an instance of A using the constructor that takes a std::string& reference
+    rttr::type typeA = rttr::type::get<A>();
+    rttr::variant instanceA = typeA.create({str});
+    A* a = instanceA.get_value<A*>();
+
+    // Create an instance of B using the static factory method 'create'
+    rttr::type typeB = rttr::type::get<B>();
+    rttr::variant instanceB = typeB.create({"Factory created!"});
+    B* b = instanceB.get_value<B*>();
+
+    // Clean up dynamically created instances
+    delete b;
+
+    return 0;
+}
+```
+
+### Explanation of the Code:
+
+1. **Class A**:
+   - `A` has a constructor that takes a **reference to a `std::string`** (`std::string& str`).
+   - The constructor prints the string passed to it.
+
+2. **Class B**:
+   - `B` has a **private constructor** that takes a `std::string` (this constructor is not accessible directly).
+   - Instead, `B` has a **static factory method** `create` that creates and returns a new `B` object. This method is used to instantiate `B` via RTTR.
+
+3. **RTTR Registration**:
+   - The `A` class is registered with RTTR using the `constructor<std::string&>()`, which means RTTR knows that `A` can be created by passing a `std::string&`.
+   - The `B` class is registered with RTTR using the `constructor(&B::create)` to indicate that RTTR should use the static `create` method to create instances of `B`.
+
+4. **Creating Instances**:
+   - In the `main()` function, we first create an instance of `A` by passing a `std::string` to its constructor (`typeA.create({str})`).
+   - Next, we create an instance of `B` by calling its static `create` method (`typeB.create({"Factory created!"})`).
+
+5. **Output**:
+   - The constructor of `A` will print the string passed to it.
+   - The `create` method of `B` will print a message indicating that an instance of `B` was created using the factory.
+
+### Output:
+```
+A constructed with: Hello, RTTR!
+Creating B using factory method with: Factory created!
+```
+
+### Key Points:
+- **`constructor<std::string&>()`**: This is a **normal constructor** that is registered with RTTR. It allows creating an instance of `A` by passing a `std::string&` (reference to a `std::string`).
+- **`constructor(&B::create)`**: This registers a **static factory method** `create` as a constructor for class `B`. You can create instances of `B` using this method, which may include additional logic beyond what a regular constructor might do.
+
+### Summary:
+- **`.constructor<std::string&>()`** is used to register a **constructor** that accepts a reference to a string (`std::string&`), which will be used when creating objects of class `A`.
+- **`.constructor(&B::create)`** registers a **static factory method** (`create`) to instantiate objects of class `B`. This method allows the creation of objects with more complex logic than what a typical constructor might allow.
+
+Both are useful, but they serve different purposes—one for direct construction with parameters, and the other for more flexible or complex object creation patterns using static methods.
