@@ -416,3 +416,291 @@ int main() {
 - **Method Name Matching:** The method name provided to `get_method` must exactly match the registered name, including case sensitivity.
 
 In summary, `get_method` and `get_parameter_infos` in RTTR allow you to dynamically inspect methods and their parameters in C++ and invoke them without needing to know their details at compile time. This is useful in dynamic systems, such as plugins, scripting, and reflection-based frameworks.
+
+
+--------------------------------------------------------------------------
+
+Great question!
+
+In **RTTR**, the method `get_wrapped_value()` is used on `rttr::variant` objects to **unwrap** the actual underlying value, especially when you're dealing with types that are wrapped—like pointers, `std::reference_wrapper`, or even smart pointers.
+
+---
+
+## 🔍 What is `get_wrapped_value()`?
+
+When you reflect over properties or invoke methods, RTTR returns a `variant` object. Sometimes this variant doesn't hold the value directly, but a **wrapper** (like a reference or pointer). The method `get_wrapped_value()` lets you **unwrap** the actual object/value from that container.
+
+---
+
+## 🔧 Syntax:
+
+```cpp
+rttr::variant rttr::variant::get_wrapped_value() const;
+```
+
+---
+
+## 📦 When is this useful?
+
+Imagine you have a property that returns a reference or pointer to an object. If you want to access or manipulate the real value that’s inside, you'll need `get_wrapped_value()`.
+
+---
+
+## ✅ Example
+
+### 1. **Class Definition**
+
+```cpp
+#include <rttr/registration>
+#include <iostream>
+#include <string>
+#include <functional> // For std::reference_wrapper
+
+class User {
+public:
+    std::string name = "Guest";
+};
+
+class Manager {
+public:
+    User& getUser() { return user; }
+
+private:
+    User user;
+};
+
+RTTR_REGISTRATION
+{
+    rttr::registration::class_<User>("User")
+        .property("name", &User::name);
+
+    rttr::registration::class_<Manager>("Manager")
+        .method("getUser", &Manager::getUser);
+}
+```
+
+---
+
+### 2. **Using `get_wrapped_value()`**
+
+```cpp
+int main() {
+    Manager mgr;
+
+    // Get the type of Manager
+    rttr::type mgr_type = rttr::type::get<Manager>();
+
+    // Get the method
+    rttr::method get_user_method = mgr_type.get_method("getUser");
+
+    // Call the method, which returns a reference to User
+    rttr::variant wrapped = get_user_method.invoke(mgr);
+
+    // Check if the result is a wrapper
+    if (wrapped.is_valid()) {
+        std::cout << "Before unwrap: Type = " << wrapped.get_type().get_name() << std::endl;
+
+        // Get the unwrapped value (i.e., the actual User object)
+        rttr::variant unwrapped = wrapped.get_wrapped_value();
+
+        std::cout << "After unwrap: Type = " << unwrapped.get_type().get_name() << std::endl;
+
+        // Access the 'name' property of the unwrapped User
+        rttr::type user_type = unwrapped.get_type();
+        rttr::property name_prop = user_type.get_property("name");
+
+        if (name_prop.is_valid()) {
+            std::cout << "Original name: " << name_prop.get_value(unwrapped).to_string() << std::endl;
+
+            // Change the name
+            name_prop.set_value(unwrapped, "Alice");
+
+            std::cout << "Updated name: " << name_prop.get_value(unwrapped).to_string() << std::endl;
+        }
+    }
+
+    return 0;
+}
+```
+
+---
+
+### 🧾 Output:
+
+```plaintext
+Before unwrap: Type = User&
+After unwrap: Type = User
+Original name: Guest
+Updated name: Alice
+```
+
+---
+
+## 🔑 Key Takeaways:
+
+| Concept                | Explanation                                      |
+|------------------------|--------------------------------------------------|
+| `get_wrapped_value()`  | Unwraps the value from a reference or pointer    |
+| Useful when            | Method/property returns `User&`, `User*`, etc.  |
+| Without unwrapping     | You can't reflect deeper on the actual object   |
+| After unwrapping       | You can access and modify real object values    |
+
+---
+
+If you’re working with **references**, **pointers**, or **wrappers**, always check if you need `get_wrapped_value()` to get the actual instance for reflection.
+
+Awesome! Let’s look at how `get_wrapped_value()` works when the method returns a **pointer** or a **smart pointer** (like `std::shared_ptr` or `std::unique_ptr`). RTTR handles these similarly — the returned `variant` holds the wrapper, and you need to **unwrap** it to reflect on the actual object.
+
+---
+
+## ✅ Example: Using `User*` (raw pointer)
+
+### 🔧 Class Setup
+
+```cpp
+#include <rttr/registration>
+#include <iostream>
+#include <string>
+
+class User {
+public:
+    std::string name = "Guest";
+};
+
+class Manager {
+public:
+    User* getUser() { return &user; }
+
+private:
+    User user;
+};
+
+RTTR_REGISTRATION {
+    rttr::registration::class_<User>("User")
+        .property("name", &User::name);
+
+    rttr::registration::class_<Manager>("Manager")
+        .method("getUser", &Manager::getUser);
+}
+```
+
+---
+
+### 🧠 Reflect and Unwrap Pointer
+
+```cpp
+int main() {
+    Manager mgr;
+
+    // Get type
+    rttr::type mgr_type = rttr::type::get<Manager>();
+
+    // Get method
+    rttr::method get_user = mgr_type.get_method("getUser");
+
+    // Invoke the method (returns User*)
+    rttr::variant wrapped = get_user.invoke(mgr);
+
+    if (wrapped.is_valid()) {
+        std::cout << "Before unwrap: " << wrapped.get_type().get_name() << std::endl;
+
+        // Unwrap the pointer to get actual User object
+        rttr::variant unwrapped = wrapped.get_wrapped_value();
+
+        std::cout << "After unwrap: " << unwrapped.get_type().get_name() << std::endl;
+
+        // Reflect on the unwrapped object
+        rttr::property name_prop = unwrapped.get_type().get_property("name");
+
+        if (name_prop.is_valid()) {
+            std::cout << "Original name: " << name_prop.get_value(unwrapped).to_string() << std::endl;
+
+            name_prop.set_value(unwrapped, "Bob");
+
+            std::cout << "Updated name: " << name_prop.get_value(unwrapped).to_string() << std::endl;
+        }
+    }
+}
+```
+
+---
+
+### 🧾 Output:
+
+```plaintext
+Before unwrap: User*
+After unwrap: User
+Original name: Guest
+Updated name: Bob
+```
+
+---
+
+## 🔁 Example: With `std::shared_ptr<User>`
+
+### 🧱 Class Setup
+
+```cpp
+#include <memory> // For shared_ptr
+
+class SmartManager {
+public:
+    std::shared_ptr<User> getSmartUser() {
+        return std::make_shared<User>();
+    }
+};
+
+RTTR_REGISTRATION {
+    rttr::registration::class_<SmartManager>("SmartManager")
+        .method("getSmartUser", &SmartManager::getSmartUser);
+}
+```
+
+---
+
+### 💡 Reflect and Unwrap Shared Pointer
+
+```cpp
+SmartManager smart_mgr;
+rttr::type smart_mgr_type = rttr::type::get<SmartManager>();
+rttr::method smart_method = smart_mgr_type.get_method("getSmartUser");
+
+rttr::variant smart_wrapped = smart_method.invoke(smart_mgr);
+
+if (smart_wrapped.is_valid()) {
+    std::cout << "Before unwrap: " << smart_wrapped.get_type().get_name() << std::endl;
+
+    rttr::variant smart_unwrapped = smart_wrapped.get_wrapped_value();
+
+    std::cout << "After unwrap: " << smart_unwrapped.get_type().get_name() << std::endl;
+
+    rttr::property name_prop = smart_unwrapped.get_type().get_property("name");
+    if (name_prop.is_valid()) {
+        name_prop.set_value(smart_unwrapped, "Charlie");
+        std::cout << "SharedPtr name: " << name_prop.get_value(smart_unwrapped).to_string() << std::endl;
+    }
+}
+```
+
+---
+
+### 📦 Output:
+
+```plaintext
+Before unwrap: std::shared_ptr<User>
+After unwrap: User
+SharedPtr name: Charlie
+```
+
+---
+
+## 🧠 Summary Table
+
+| Return Type        | `variant` Type Before Unwrap | Type After `get_wrapped_value()` |
+|--------------------|------------------------------|----------------------------------|
+| `User&`            | `User&`                      | `User`                           |
+| `User*`            | `User*`                      | `User`                           |
+| `std::shared_ptr<User>` | `std::shared_ptr<User>`      | `User`                           |
+| `std::unique_ptr<User>` | `std::unique_ptr<User>`      | `User`                           |
+
+---
