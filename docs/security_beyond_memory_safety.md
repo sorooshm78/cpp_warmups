@@ -399,3 +399,6 @@ inline void secure_erase_custom(void* v, size_t n) {
 - **`memset`** is widely supported but not secure for wiping secrets in all build configurations.  
 - **`memset_explicit`** (C23) and **`memset_s`** (Annex K) attempt to fix this shortcoming, but **real-world support** is still limited.  
 - Until compilers and standard libraries catch up, you may need **platform-specific** functions like `explicit_bzero` or a **custom** volatile-based erase function to ensure sensitive data is truly overwritten.
+
+-------------------------------------
+
