@@ -402,3 +402,7 @@ inline void secure_erase_custom(void* v, size_t n) {
 
 -------------------------------------
 
+![](./images/memory_safty.exam6.png)
+![](./images/memory_safty.exam7.png)
+![](./images/memory_safty.exam8.png)
+![](./images/memory_safty.exam9.png)
