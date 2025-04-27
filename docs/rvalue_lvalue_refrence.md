@@ -3,6 +3,7 @@
 ![](./images/rl3.png)
 ![](./images/rl4.png)
 ![](./images/rl5.png)
+![](./images/rl6.png)
 
 # **lvalue, rvalue, lvalue reference, rvalue reference** in C++ 
 
