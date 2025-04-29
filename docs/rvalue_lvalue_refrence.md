@@ -557,3 +557,91 @@ std::string s2 = std::move(s1);
    Use `std::move` when you want to hand an object over as a disposable temporary. Afterward, the source object remains in a *valid-but-unspecified* state, so only perform operations that are guaranteed safe (e.g., destroy it, assign a new value, or call methods documented as valid post-move).
 
 **Bottom line:** `std::move` only *labels* the object as movable; the *move operation* itself is carried out by the receiving constructor or assignment operator.
+
+
+
+---------------
+---------------
+---------------
+---------------
+---------------
+
+![](./images/rl10)
+
+### What the slide is asking
+
+The slide shows a tiny generic function
+
+```cpp
+template<class T>
+void foo(T& a, T& b) {
+    T temp = std::move(a);   // ← here
+    // do some more stuff
+}
+```
+
+and then asks “Is it **valid** to `std::move` an **l-value** reference?”  
+(The parameters `a` and `b` are both ordinary l-value references, `T&`.)
+
+### How `std::move` really works
+
+* `std::move(x)` **does not move** anything by itself.  
+  It is nothing more than a cast:  
+
+  ```cpp
+  template<class U>
+  constexpr std::remove_reference_t<U>&& move(U&& u) noexcept
+  { return static_cast<std::remove_reference_t<U>&&>(u); }
+  ```
+
+* In other words it turns *any* expression you give it—even an l-value—into an r-value **expression**.  
+  Whether an actual *move* happens depends on what constructor/assignment operator is selected **later**.
+
+Because that cast is always legal, `std::move(a)` is always **well-formed C++**.  
+So answers A and B (“won’t compile” / “warns”) are wrong.
+
+### Is it Undefined Behaviour?
+
+No. UB in C++ comes from using an object in a way the Standard forbids (out-of-bounds, double-free, etc.). Merely putting an object into a *moved-from* state is **defined behaviour**: the Standard says a moved-from object is still valid but its value is unspecified. So answer C is wrong as well.
+
+### When moving from an l-value reference is *legit*
+
+It can absolutely be the right thing to do—**if you really intend to give up the old value of `a` inside `foo()`.**
+
+Typical, totally legitimate patterns:
+
+```cpp
+// Classic swap:
+T temp = std::move(a);
+a       = std::move(b);
+b       = std::move(temp);
+```
+
+```cpp
+// Efficient “consume-and-produce” algorithm:
+out_vec.push_back(std::move(a));   // steal a’s guts
+a.reinitialize();                  // give a fresh state
+```
+
+```cpp
+// std::iter_swap’s inner loop eventually does the same trick
+```
+
+Notice all three cases satisfy the crucial rule:
+
+> **After you move from an object, either destroy it or assign it a new value  
+>  *before* you (or anyone else) rely on its contents.**
+
+That rule is under *your* control inside `foo()`, so the cast is safe and useful.
+
+### When it would be a mistake
+
+* If `foo()` later needs the original value of `a`.  
+* If the caller assumes `a` is untouched after the call and you don’t document otherwise.
+* If `a` and `b` might alias the same object and the algorithm is not prepared for self-move.
+
+Those are **logical** errors, not language-level UB: the code still compiles and runs, it just doesn’t do what you meant.
+
+### So which multiple-choice answer is right?
+
+> **D. “Yes, it can be legit in some cases.”**
