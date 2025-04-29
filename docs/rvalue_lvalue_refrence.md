@@ -645,3 +645,116 @@ Those are **logical** errors, not language-level UB: the code still compiles and
 ### So which multiple-choice answer is right?
 
 > **D. “Yes, it can be legit in some cases.”**
+
+
+![](./images/rl11.png)
+
+----------------------------
+----------------------------
+----------------------------
+----------------------------
+----------------------------
+
+![](./images/rl12.png)
+
+Certainly! This slide explains a C++ concept called **"implicit move on return"**.
+
+### What does it mean?
+
+When you return a local object from a function, the compiler can automatically **move** the object instead of copying it, **without you explicitly calling `std::move()`**.
+
+### Breakdown of the code:
+
+```cpp
+struct Moo {
+    std::string s;
+    // ...
+};
+
+Moo foo() {
+    Moo moo {"hello"};
+    return moo; // implicitly moved (do not call std::move()!)
+}
+```
+
+- `Moo` is a simple struct containing a `std::string`.
+- Inside the function `foo`, you create a local object `moo`.
+- When you return `moo`, instead of copying it, the compiler *implicitly moves* the value, using the move constructor of `Moo` (assuming it has one, or the compiler generates one because `std::string` supports moving).
+
+### Why is this important?
+
+- **Performance:** Moving objects is usually much cheaper than copying (e.g., `std::string` can just transfer internal pointers rather than duplicating data).
+- **Easier code:** You don't have to write `return std::move(moo);` manually. Just return the object, and the compiler optimizes the move for you.
+- **Avoids bugs:** People sometimes mistakenly add `std::move()` on return, which can *prevent* certain optimizations (like Return Value Optimization, RVO). Trust the compiler to do the right thing.
+
+### Summary:
+
+- Returning a local variable by value will implicitly invoke move semantics if that variable is about to go out of scope.
+- You **should not** use `std::move()` manually in the return statement in such cases — let the compiler handle it.
+
+------
+------
+------
+------
+
+### Copy vs Move
+
+When you return an object from a function, the compiler can do two things:
+
+1. **Copy:**  
+   Create a full copy of the object, duplicating all its data.  
+   Example if copying:
+   ```cpp
+   Moo moo2 = moo; // copy constructor called
+   ```
+   This can be expensive, especially if the object holds a lot of data.
+
+2. **Move:**  
+   Instead of copying all the internal data, "steal" the resources from the original object. After a move, the original object is left in a valid but unspecified state (often empty).  
+   Example if moving:
+   ```cpp
+   Moo moo2 = std::move(moo); // move constructor called
+   ```
+   This is much cheaper because it's like taking pointers rather than copying the data itself.
+
+---
+
+### What does `std::move` do?
+
+`std::move` is a **cast** that tells the compiler:  
+*"I want this object to be treated as something that can be moved from."*  
+
+It does **not** move anything by itself but essentially allows the compiler to pick the move constructor or move assignment operator instead of copy.
+
+---
+
+### Why should you *not* call `std::move` in the return statement?
+
+Example (not recommended):
+
+```cpp
+return std::move(moo);
+```
+
+- Here, when you explicitly call `std::move`, it **forces** the move.
+- But modern compilers can already detect that `moo` is local and about to go out of scope, so they implicitly move it.
+- Also, explicitly calling `std::move` can **disable some compiler optimizations** like Copy Elision / Return Value Optimization (RVO), which might let the compiler completely eliminate the copy or move altogether, improving performance even more.
+
+---
+
+### Summary
+
+- **Returning a local object by value:** The compiler automatically uses move semantics if available.
+- **`std::move` in a return:** Usually unnecessary, and sometimes harmful by preventing optimizations.
+- Trust the compiler — **just write `return moo;`** and the compiler will do the optimal thing.
+
+---
+
+
+------------------------
+------------------------
+------------------------
+------------------------
+------------------------
+
+
