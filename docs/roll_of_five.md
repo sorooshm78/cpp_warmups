@@ -66,3 +66,16 @@ Certainly! These slides explain the **Rule of Five** in C++, especially about ho
 
 ---
 
+
+
+Tip | Explanation
+Custom destructor → implicit move functions are suppressed | Even if you only write a user-defined destructor, the compiler will not implicitly generate the move-constructor or move-assignment operator. (The copy-ctor / copy-assignment will still be generated unless a data member is itself non-copyable.)
+
+Custom copy-ctor or copy-assignment → implicit move functions are suppressed | As soon as you provide either copy operation, the compiler assumes you need deep copying, so an implicit “shallow” move would be unsafe and is therefore deleted.
+
+Custom move-ctor or move-assignment → implicit copy functions are suppressed | Conversely, once you define a move operation, the default member-wise copy might be wrong, so both copy operations are implicitly deleted.
+
+= default vs = delete | = default asks the compiler to generate the implementation that would have been produced; = delete forbids the function entirely and triggers a compile-time error on any call.
+Rule of Zero | Delegate resource management to RAII helpers such as std::unique_ptr, std::vector, std::string, … so you need none of the five special functions.
+
+Compiler warnings | Enable flags like -Wall -Wextra (GCC/Clang) or /W4 (MSVC). They clearly tell you when a move/copy function has been implicitly deleted, helping you catch problems early.

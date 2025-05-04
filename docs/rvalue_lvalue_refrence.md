@@ -996,4 +996,102 @@ If you want, I can review the actual code from those links or explain how to imp
 ------------------------
 ------------------------
 
+![](./images/rl21.png)
+
+Certainly! This image explains **when to use rvalue references (rvalue ref)** in C++ programming. Here's a breakdown of the key points:
+
+---
+
+### When do we use rvalue ref?
+
+1. **Mostly**:
+   - On **parameters** of functions.
+   - Purpose: to allow **overloading** for **"move" operations**.
+   - This means you use rvalue references to implement move semantics, allowing the efficient transfer of resources from temporary objects (rvalues) instead of copying them.
+
+2. **In rare cases**:
+   - On **variable definition**.
+   - Usually, if it's not an lvalue reference, you would create a **value type** instead.
+   - This means you generally wouldn’t use rvalue references for defining variables but stick to normal value types unless there is a specific reason.
+
+3. **In very rare cases**:
+   - On **function return values**.
+   - This is uncommon and usually not recommended.
+   - A link to a Stack Overflow answer is provided for a detailed explanation.  
+     (Link: http://stackoverflow.com/a/5770888)
+
+---
+
+### Summary
+- The primary use of rvalue references is to enable **move semantics** in function parameters.
+- Using rvalue references for variable definitions or function return values is rarely done and should be approached with caution.
+
+Sure! Here are simple examples for each case mentioned in the image:
+
+---
+
+### 1. **Mostly: rvalue ref on function parameters for move operations**
+
+```cpp
+#include <iostream>
+#include <string>
+#include <utility>  // for std::move
+
+void processString(std::string&& str) {
+    std::string localStr = std::move(str);  // "Move" the string instead of copying
+    std::cout << "Processed string: " << localStr << std::endl;
+}
+
+int main() {
+    std::string s = "Hello";
+    processString(std::move(s));  // Pass rvalue ref, allowing move
+    return 0;
+}
+```
+
+- Here, the function `processString` accepts an rvalue reference to a string, enabling move semantics.
+- This avoids copying the string and improves efficiency.
+
+---
+
+### 2. **In rare cases: rvalue ref on variable definition**
+
+```cpp
+int&& rvalue_var = 10;  // rvalue reference to a temporary integer
+
+std::cout << rvalue_var << std::endl;  // outputs 10
+```
+
+- This is rare because usually you just write `int x = 10;`.
+- Here, `rvalue_var` is an rvalue reference binding directly to a temporary (literal `10`).
+- This usage is uncommon and typically not needed.
+
+---
+
+### 3. **In very rare cases: rvalue ref on function return value**
+
+```cpp
+int&& getRvalueRef() {
+    int x = 42;
+    return std::move(x);  // returning rvalue reference (dangerous here!)
+}
+
+int main() {
+    int&& val = getRvalueRef();
+    std::cout << val << std::endl;  // Undefined behavior! Local x was destroyed.
+    return 0;
+}
+```
+
+- Returning an rvalue reference from a function is very rare and almost always dangerous.
+- Here, it leads to undefined behavior because the function returns a reference to a local variable that no longer exists after the function returns.
+
+---
+
+------------------------
+------------------------
+------------------------
+------------------------
+------------------------
+
 
