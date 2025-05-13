@@ -1094,4 +1094,814 @@ int main() {
 ------------------------
 ------------------------
 
+![](./images/rl21.png)
+![](./images/rl22.png)
 
+The slide discusses a specific situation in programming, particularly in the context of using the `move` command or function in a programming language or framework, where the move operation is only permitted under certain conditions. Let me break it down and give a detailed explanation with examples.
+
+---
+
+### Core Concept:
+- **`move` command**: Used to move objects or elements.
+- **Conditional move (move if no exception)**: The move can only happen if certain conditions are met, specifically, it shouldn't trigger an exception or error.
+
+---
+
+### The Key Point:
+Some move operations are **only valid if they promise not to throw exceptions**. This is critical when designing functions or code snippets that involve resource management or object manipulation.
+
+---
+
+### Why is this important?
+- When you **move** an object, you transfer its resources from one place to another.
+- If the move operation can **throw** an exception (an error), then the program’s state might become inconsistent or unpredictable if the move fails.
+- Therefore, some move operations are **only safe or allowed** if they **promise** (or are guaranteed) not to throw exceptions.
+
+---
+
+### Example Scenario (C++ style pseudocode):
+
+Suppose you’re working with C++ and the `std::move()` function:
+
+```cpp
+std::vector<int> v1 = {1, 2, 3};
+std::vector<int> v2;
+
+try {
+    v2 = std::move(v1); // Move contents of v1 to v2
+} catch (...) {
+    // Handle error
+}
+```
+
+- Generally, `std::move()` itself **does not throw**; it **casts** an object to an rvalue reference.
+- What **can throw** are the **move constructors** or **move assignment operators** of the objects involved.
+
+For example, if `vector`'s move constructor is marked as `noexcept` (guaranteed not to throw), then the move operation is safe and can be used in conditions where exception safety is critical.
+
+---
+
+### The Conditions Mentioned in the Slide:
+
+> **Cases where move can be used only if it promises not to throw an exception**
+
+1. **When the move constructor or move assignment is marked as `noexcept`.**
+    - This guarantees that moving an object won't throw an exception.
+    - Example: `std::vector` in C++ standard library typically has a `noexcept` move constructor.
+
+2. **When the code depends on the move being exception-free.**
+    - For example, in data structures like stacks or queues, if moving elements might throw, then you'd need to handle such exceptions carefully.
+
+---
+
+### Practical Example:
+
+Imagine you want to add a **Godzilla object** to a vector:
+
+```cpp
+std::vector<Godzilla> monsters;
+```
+
+- If moving a `Godzilla` object throws an exception, and your design requires it not to, you'd only allow move operations **if `Godzilla`'s move constructor is `noexcept`**.
+
+```cpp
+if constexpr (std::is_nothrow_move_constructible<Godzilla>::value) {
+    monsters.push_back(std::move(godzillaInstance));
+} else {
+    // fallback to copy or handle error
+}
+```
+
+---
+
+### Summary:
+- The slide emphasizes that in certain programming scenarios, **move operations are only safe or valid if they promise not to throw exceptions**.
+- Developers need to check whether move constructors or move assignment operators are `noexcept` before employing move semantics to ensure safe and predictable code.
+
+---
+
+
+
+------------------------
+------------------------
+------------------------
+------------------------
+------------------------
+
+تأثیر `noexcept` روی **move semantics** در C++ بسیار مهم و ظریف است. در اینجا توضیح می‌دهم که `noexcept` چیست، چرا در زمینه move semantics اهمیت دارد، و چه تأثیری روی performance و behavior برنامه دارد:
+
+---
+
+### ✅ `noexcept` چیست؟
+
+کلمه کلیدی `noexcept` در C++ مشخص می‌کند که یک تابع (مثل سازنده، destructor یا operator) **تضمین می‌دهد که استثناء پرتاب نمی‌کند**.
+
+مثال:
+
+```cpp
+MyClass(MyClass&& other) noexcept;
+```
+
+این یعنی move constructor کلاس `MyClass` هیچ‌وقت `throw` نمی‌کند.
+
+---
+
+### 💡 چرا `noexcept` در move semantics مهم است؟
+
+وقتی STL (مثل `std::vector`, `std::string`, `std::optional`, ...) یا الگوریتم‌های استاندارد نیاز دارند شیءای را جابجا کنند، **در صورت نبودن `noexcept` روی move constructor/assignment، ترجیح می‌دهند از copy استفاده کنند.**
+
+چرا؟ چون اگر move عملیات انجام شود و exception بیفتد، ممکن است وضعیت container خراب شود (به خاطر violation of exception safety guarantees).
+
+---
+
+### 📌 مثال:
+
+فرض کنید کلاس زیر را داریم:
+
+```cpp
+class MyClass {
+public:
+    MyClass() = default;
+    MyClass(const MyClass& other);             // Copy
+    MyClass(MyClass&& other) /* بدون noexcept */; // Move
+};
+```
+
+اگر `MyClass` را داخل `std::vector<MyClass>` قرار دهید، و vector نیاز به resize داشته باشد (مثلاً push\_back می‌کنید و ظرفیت پر است)، vector باید اشیاء قبلی را به مکان جدید منتقل کند.
+
+در این حالت چون move constructor `noexcept` نیست، `std::vector` به دلایل ایمنی تصمیم می‌گیرد از **copy constructor** استفاده کند، حتی اگر move constructor موجود باشد.
+
+---
+
+### ✅ راه‌حل: استفاده از `noexcept`
+
+```cpp
+class MyClass {
+public:
+    MyClass() = default;
+    MyClass(const MyClass& other);
+    MyClass(MyClass&& other) noexcept; // ✅ تضمین امنیت جابجایی
+};
+```
+
+اکنون، اگر `std::vector` یا هر container دیگری متوجه شود که move constructor شما `noexcept` است، از آن استفاده خواهد کرد، که معمولاً سریع‌تر از copy است.
+
+---
+
+### ✨ نتیجه:
+
+* اگر move constructor/assignment شما `noexcept` نباشد، STL ممکن است از **copy** استفاده کند.
+* استفاده از `noexcept` در move operations، هم به **performance** کمک می‌کند (جابجایی به‌جای کپی)، هم به **exception safety**.
+* اگر کلاس شما از منابعی مثل pointer یا حافظه دینامیک استفاده می‌کند، توصیه می‌شود move constructor و move assignment را `noexcept` علامت‌گذاری کنید **در صورتی که واقعاً هیچ استثنایی پرتاب نمی‌شود**.
+
+---
+
+اگر خواستی، می‌تونم کدی بنویسم که تفاوت رفتار `noexcept` در عمل رو با یک benchmark ساده نشون بده.
+
+
+------------------------
+------------------------
+------------------------
+------------------------
+------------------------
+
+حتماً! بیایید دقیق‌تر و با جزئیات فنی بررسی کنیم **چرا `noexcept` روی move semantics تأثیر دارد**، و دلیل اصلی این تصمیم در طراحی STL و استاندارد C++ چیست.
+
+---
+
+## 🧠 پیش‌نیاز کوتاه:
+
+در C++ دو راه برای جابه‌جا کردن یک شیء وجود دارد:
+
+1. **کپی (Copy constructor / Copy assignment)** → معمولاً هزینه‌بر است.
+2. **جابجایی (Move constructor / Move assignment)** → سبک و سریع است، چون منابع (مثل pointerها) را "سرقت" می‌کند.
+
+حالا سوال این است:
+
+> اگر یک کلاس هم copy constructor و هم move constructor داشته باشد، کدام استفاده می‌شود؟ 🤔
+
+جواب: **به شرطی که move constructor `noexcept` باشد، از move استفاده می‌شود.**
+
+---
+
+## 🔥 چرا STL از `copy` استفاده می‌کند اگر `move` `noexcept` نباشد؟
+
+به خاطر **تضمین‌های ایمنی در برابر استثناء (Exception Safety Guarantees)**.
+
+فرض کن در حال اضافه کردن عنصر جدیدی به `std::vector<MyClass>` هستی. اگر ظرفیت vector پر شود، vector باید حافظه جدیدی رزرو کند، و همه عناصر قبلی را به حافظه جدید منتقل کند (ری‌الوکیشن).
+
+حالا:
+
+* اگر در حین جابجایی یکی از عناصر، move constructor یک استثناء پرتاب کند، حافظه vector در حالت بلاتکلیف می‌ماند.
+* STL قول داده که حتی در صورت استثناء، vector در وضعیت قابل پیش‌بینی باقی بماند (**strong exception guarantee**).
+* بنابراین، اگر move constructor شما ممکن است throw کند، STL تصمیم می‌گیرد به جای استفاده از move، از copy استفاده کند. چون copy معمولاً "safe"تر است (و احتمال throw شدن آن قابل کنترل‌تر است).
+
+---
+
+## 🔍 مثال ساده:
+
+### بدون `noexcept`
+
+```cpp
+#include <iostream>
+#include <vector>
+
+class MyClass {
+public:
+    MyClass() = default;
+    MyClass(const MyClass&) {
+        std::cout << "Copy constructor\n";
+    }
+
+    MyClass(MyClass&&) {  // 👈 بدون noexcept
+        std::cout << "Move constructor\n";
+    }
+};
+
+int main() {
+    std::vector<MyClass> v;
+    v.reserve(1);
+    v.emplace_back();  // اولین عنصر اضافه می‌شود
+
+    std::cout << "--- Adding second element ---\n";
+    v.emplace_back();  // نیاز به ری‌الوکیشن و جابجایی عناصر
+}
+```
+
+### خروجی:
+
+```
+Move constructor
+--- Adding second element ---
+Copy constructor
+Move constructor
+```
+
+🔸 مشاهده می‌کنید که در مرحله دوم، از **Copy constructor** استفاده شد! STL تصمیم گرفت عنصر اول را با copy جابجا کند چون move constructor امن نبود (noexcept نبود).
+
+---
+
+### حالا اگر `noexcept` اضافه کنیم:
+
+```cpp
+MyClass(MyClass&&) noexcept {
+    std::cout << "Move constructor\n";
+}
+```
+
+### خروجی تغییر می‌کند:
+
+```
+Move constructor
+--- Adding second element ---
+Move constructor
+Move constructor
+```
+
+یعنی vector به‌طور کامل از move استفاده می‌کند چون الان می‌داند move operation شما امن است و throw نمی‌کند.
+
+---
+
+## ✅ جمع‌بندی دلیل اصلی:
+
+STL containers مثل `std::vector` در زمان ری‌الوکیشن یا sort کردن عناصر، نیاز به جابجایی عناصر دارند.
+
+* اگر move constructor `noexcept` نباشد، احتمال وقوع استثناء وجود دارد.
+* در این حالت، برای حفظ ایمنی برنامه و عدم نابودی ساختار داده‌ها، ترجیح داده می‌شود از copy constructor استفاده شود (که یا noexcept است یا مدیریت exception آن ساده‌تر است).
+* اما اگر move constructor `noexcept` باشد، STL با خیال راحت از آن استفاده می‌کند، و برنامه سریع‌تر و بهینه‌تر اجرا می‌شود.
+
+---
+
+
+------------------------
+------------------------
+------------------------
+------------------------
+------------------------
+
+حتماً! اجازه بده با یک مثال تصویری ساده نشون بدم **کپی (Copy)** و **جابجایی (Move)** چه تفاوتی دارن.
+
+---
+
+## 🎯 سناریو
+
+فرض کن ما یک شیء داریم که شامل یک pointer به یک رشته هست:
+
+```cpp
+MyClass a("Hello");
+```
+
+### حافظه قبل از هر عملیاتی:
+
+```
+[a] ---> "Hello"
+```
+
+شیء `a` یه pointer داره که به حافظه‌ای اشاره می‌کنه که "Hello" توشه.
+
+---
+
+## 📋 حالت 1: Copy
+
+```cpp
+MyClass b = a; // Copy constructor
+```
+
+در این حالت، یک **کپی واقعی** از داده ساخته می‌شه. یعنی `b` هم رشته خودش رو داره، مستقل از `a`.
+
+### حافظه بعد از Copy:
+
+```
+[a] ---> "Hello"
+[b] ---> "Hello"   (کپی جدید از رشته)
+```
+
+* دو شیء مختلف، با داده‌های جداگانه ولی با مقدار یکسان.
+* هر کدوم مسئول حافظه خودشون هستن.
+* حافظه بیشتر مصرف شده.
+
+---
+
+## 🚀 حالت 2: Move
+
+```cpp
+MyClass b = std::move(a); // Move constructor
+```
+
+در این حالت، `b` فقط **pointer `a` رو می‌گیره**، و `a` خالی می‌شه (مثلاً pointerش null می‌شه).
+
+### حافظه بعد از Move:
+
+```
+[a] ---> nullptr
+[b] ---> "Hello"
+```
+
+* داده فقط منتقل شده.
+* هیچ حافظه جدیدی ساخته نشده.
+* `a` دیگه نمی‌تونه استفاده بشه چون در حالت تهی هست.
+* سریع‌تر و بهینه‌تر.
+
+---
+
+## 🧠 تصویر مقایسه‌ای نهایی:
+
+```
+COPY:                  MOVE:
+[a] ---> "Hello"       [a] ---> nullptr
+[b] ---> "Hello"       [b] ---> "Hello"
+(کپی واقعی)           (فقط pointer منتقل شده)
+```
+
+---
+
+## 📌 نکته مهم
+
+* Copy یعنی "من هم می‌خوام مثل تو باشم، داده‌هاتو برای خودم کپی می‌کنم."
+* Move یعنی "من داده‌هاتو ازت می‌گیرم، تو دیگه لازمش نداری."
+
+---
+
+
+------------------------
+------------------------
+------------------------
+------------------------
+------------------------
+
+سؤال خیلی خوبی پرسیدی چون فهمیدن دقیق اینکه **چه زمانی move استفاده میشه و کی move constructor/assignment صدا زده میشه**، باعث میشه بتونی برنامه‌های بهینه‌تری بنویسی.
+
+---
+
+## ✅ کی `move` استفاده میشه؟
+
+`move` زمانی استفاده میشه که:
+
+1. شیء‌ای داریم که دیگه نیازی بهش نداریم (بهش می‌گیم rvalue یا "قابل مصرف").
+2. کلاس ما دارای move constructor یا move assignment operator باشه.
+3. اون تابع/عملیات بتونه `move` رو ترجیح بده (مثلاً `std::vector::push_back`, `return` by value, …).
+
+---
+
+## 🔍 کی دقیقاً `move constructor` یا `move assignment` صدا زده میشه؟
+
+### 🔹 1. وقتی شیء از طریق `std::move()` منتقل بشه
+
+```cpp
+MyClass a("Hello");
+MyClass b = std::move(a);  // 👉 move constructor صدا زده میشه
+```
+
+اینجا `std::move(a)` یعنی: "این شیء دیگه لازم نیست، بیا منابعشو بگیر".
+
+---
+
+### 🔹 2. وقتی شیء موقت (temporary) منتقل بشه
+
+```cpp
+MyClass getObject() {
+    return MyClass("Temp");  // 👉 move constructor هنگام return (در اکثر مواقع)
+}
+
+MyClass obj = getObject();  // move constructor از مقدار بازگشتی
+```
+
+اینجا `MyClass("Temp")` یه temporary (rvalue) هست، پس compiler از move constructor استفاده می‌کنه.
+
+> ❗ در C++17 و بعد از اون، ممکنه compiler اصلاً move/copy نزنه و مستقیم شیء رو بسازه (با **copy elision / RVO**)، ولی اگه بزنه، move خواهد بود.
+
+---
+
+### 🔹 3. درون containerهایی مثل `std::vector` وقتی reallocation اتفاق بیفته
+
+```cpp
+std::vector<MyClass> vec;
+vec.push_back(MyClass("Hi"));  // 👉 move constructor
+```
+
+اینجا `MyClass("Hi")` یه temporary هست → move constructor استفاده میشه.
+
+اگر ظرفیت vector پر بشه و reallocation نیاز باشه:
+
+```cpp
+vec.push_back(MyClass("Second"));  // move برای عناصر قدیمی (اگر noexcept باشه)
+```
+
+---
+
+### 🔹 4. هنگام return از توابع
+
+```cpp
+MyClass create() {
+    MyClass temp("Created");
+    return temp;  // 👉 move constructor (اگر RVO خاموش باشه)
+}
+```
+
+---
+
+### 🔹 5. هنگام assignment از temporary
+
+```cpp
+MyClass a("X");
+a = MyClass("Y");  // 👉 move assignment
+```
+
+شیء سمت راست temporary هست → move assignment.
+
+---
+
+## 📦 مثال کامل و قابل اجرا
+
+```cpp
+#include <iostream>
+#include <string>
+
+class MyClass {
+public:
+    std::string* data;
+
+    MyClass(const std::string& str) {
+        data = new std::string(str);
+        std::cout << "Constructed: " << *data << "\n";
+    }
+
+    // Copy constructor
+    MyClass(const MyClass& other) {
+        data = new std::string(*other.data);
+        std::cout << "Copied: " << *data << "\n";
+    }
+
+    // Move constructor
+    MyClass(MyClass&& other) noexcept {
+        data = other.data;
+        other.data = nullptr;
+        std::cout << "Moved\n";
+    }
+
+    // Copy assignment
+    MyClass& operator=(const MyClass& other) {
+        if (this != &other) {
+            delete data;
+            data = new std::string(*other.data);
+            std::cout << "Copy assigned: " << *data << "\n";
+        }
+        return *this;
+    }
+
+    // Move assignment
+    MyClass& operator=(MyClass&& other) noexcept {
+        if (this != &other) {
+            delete data;
+            data = other.data;
+            other.data = nullptr;
+            std::cout << "Move assigned\n";
+        }
+        return *this;
+    }
+
+    ~MyClass() {
+        if (data) std::cout << "Destroyed: " << *data << "\n";
+        else std::cout << "Destroyed: nullptr\n";
+        delete data;
+    }
+};
+
+int main() {
+    MyClass a("Hello");
+
+    std::cout << "\n--- Move with std::move ---\n";
+    MyClass b = std::move(a);  // move constructor
+
+    std::cout << "\n--- Move assignment ---\n";
+    MyClass c("Another");
+    c = std::move(b);          // move assignment
+
+    std::cout << "\n--- Return from function ---\n";
+    auto create = []() {
+        MyClass temp("Returned");
+        return temp;           // move (or RVO)
+    };
+    MyClass d = create();
+}
+```
+
+---
+
+## 🧠 جمع‌بندی
+
+| زمان                              | توضیح                                                       |
+| --------------------------------- | ----------------------------------------------------------- |
+| `std::move(obj)`                  | برنامه‌نویس اعلام می‌کنه که می‌خوایم منابع رو منتقل کنیم    |
+| بازگرداندن temporary از تابع      | move constructor در return استفاده میشه (مگر RVO فعال باشه) |
+| دادن temporary به یک شیء          | move assignment صدا زده میشه                                |
+| اضافه کردن temporary به container | move constructor استفاده میشه                               |
+| ری‌الوکیشن در container           | اگر move `noexcept` باشه، move صدا زده میشه، وگرنه copy     |
+
+---
+
+
+------------------------
+------------------------
+------------------------
+------------------------
+------------------------
+
+حتماً! بیایم دقیق و ساده مفهوم **RVO (Return Value Optimization)** رو با مثال و جزئیات بررسی کنیم.
+
+---
+
+## 🧠 RVO چیست؟
+
+**RVO (Return Value Optimization)** تکنیکی است که **کامپایلر** برای حذف کپی یا move غیرضروری هنگام بازگرداندن مقدار از یک تابع انجام می‌دهد.
+
+### 🎯 هدف: بهینه‌سازی کارایی
+
+به جای اینکه اول شیء داخل تابع ساخته بشه و بعد از طریق move یا copy به بیرون منتقل بشه، کامپایلر مستقیم شیء نهایی رو **جای خروجی نهایی** می‌سازه.
+
+---
+
+## 🧪 تفاوت بدون RVO و با RVO
+
+### 📌 بدون RVO (قدیمی یا با RVO خاموش):
+
+```cpp
+MyClass temp("data");   // داخل تابع ساخته می‌شه
+MyClass returned = std::move(temp);  // move constructor یا copy constructor
+```
+
+### ✅ با RVO:
+
+```cpp
+// شیء مستقیماً در مکان حافظه‌ی returned ساخته می‌شه
+MyClass returned = MyClass("data");  // هیچ move/copy اتفاق نمی‌افته
+```
+
+---
+
+## 🛠 مثال واقعی
+
+بیایم یه کلاس با پیام‌های واضح بسازیم تا رفتار رو ببینیم:
+
+```cpp
+#include <iostream>
+#include <string>
+
+class MyClass {
+public:
+    MyClass(const std::string& str) {
+        std::cout << "Constructor\n";
+    }
+
+    MyClass(const MyClass& other) {
+        std::cout << "Copy Constructor\n";
+    }
+
+    MyClass(MyClass&& other) noexcept {
+        std::cout << "Move Constructor\n";
+    }
+
+    ~MyClass() {
+        std::cout << "Destructor\n";
+    }
+};
+
+MyClass create() {
+    return MyClass("Hello");  // اینجا ممکنه RVO اتفاق بیفته
+}
+
+int main() {
+    MyClass a = create();     // اگر RVO فعال باشه، هیچ کپی/مووی نمی‌بینی
+}
+```
+
+---
+
+## 🔍 خروجی ممکن (بسته به تنظیمات کامپایلر)
+
+### 💥 اگر RVO **غیرفعال** باشه:
+
+```
+Constructor
+Move Constructor
+```
+
+* شیء داخل تابع ساخته شده → `Constructor`
+* سپس از تابع `move` شده → `Move Constructor`
+
+---
+
+### 🚀 اگر RVO **فعال** باشه (مثل GCC/Clang/C++17 به بعد):
+
+```
+Constructor
+```
+
+* فقط یک بار constructor صدا زده می‌شه، بدون copy یا move.
+* کامپایلر شیء نهایی رو مستقیماً در محل نهایی `a` ساخته.
+
+---
+
+## ✅ Named RVO (NRVO) vs. RVO
+
+اگر مقدار بازگشتی **متغیر با نام** باشه، بهش می‌گیم **Named Return Value Optimization (NRVO)**.
+
+```cpp
+MyClass create() {
+    MyClass x("Hi");  // x نام‌دار است
+    return x;         // NRVO تلاش می‌کنه که move/copy حذف شه
+}
+```
+
+* در این حالت هم RVO سعی می‌کنه `x` رو مستقیماً در محل `a` بسازه.
+* اما اگر کامپایلر نتونه مطمئن باشه کد مسیرهای متفاوت داره (مثلاً if/else)، ممکنه move/copy اتفاق بیفته.
+
+---
+
+## 🧵 چه زمانی RVO قطعاً انجام میشه؟
+
+از **C++17** به بعد:
+
+* RVO برای return کردن temporary **اجباری** است (guaranteed copy elision).
+
+```cpp
+MyClass create() {
+    return MyClass("Hi");  // ✅ RVO تضمین‌شده در C++17+
+}
+```
+
+---
+
+## ❗ نکته مهم درباره move و RVO
+
+* اگر RVO انجام بشه، **هیچ move constructor صدا زده نمی‌شه**.
+* به همین دلیل، ممکنه در بعضی کدها شما `move constructor` رو ننویسی و باز هم کد کار کنه، چون RVO جلوی نیاز به move رو گرفته.
+
+---
+
+## 📌 خلاصه
+
+| ویژگی                | توضیح                                                         |
+| -------------------- | ------------------------------------------------------------- |
+| **RVO**              | ساخت مستقیم مقدار بازگشتی در محل متغیر گیرنده، بدون copy/move |
+| **مزیت**             | سریع‌تر، حافظه کمتر، بدون overhead                            |
+| **فعالیت در C++17+** | بازگشت مقدار موقت → RVO **اجباری**                            |
+| **تشخیص**            | اگر هیچ پیام move/copy در کد debugت ندیدی، احتمالاً RVO فعاله |
+
+---
+
+خیلی خوب! بیایم با هم ببینیم چطوری می‌تونی **فعال یا غیرفعال بودن RVO** رو در کدت بررسی کنی و ببینی **کامپایلر چه زمانی RVO انجام می‌ده یا نه**.
+
+---
+
+## ✅ گام 1: یک کلاس با لاگ برای تشخیص copy/move
+
+```cpp
+#include <iostream>
+#include <string>
+
+class MyClass {
+public:
+    MyClass(const std::string& str) {
+        std::cout << "Constructor\n";
+    }
+
+    MyClass(const MyClass& other) {
+        std::cout << "Copy Constructor\n";
+    }
+
+    MyClass(MyClass&& other) noexcept {
+        std::cout << "Move Constructor\n";
+    }
+
+    ~MyClass() {
+        std::cout << "Destructor\n";
+    }
+};
+
+MyClass create() {
+    return MyClass("Hi");
+}
+
+int main() {
+    MyClass obj = create();
+}
+```
+
+---
+
+## ✅ گام 2: اجرای کد با g++
+
+### 🔹 اجرای معمولی (RVO فعال)
+
+```bash
+g++ -std=c++17 -O2 test.cpp -o test
+./test
+```
+
+**خروجی:**
+
+```
+Constructor
+```
+
+✅ فقط constructor صدا زده شد. پس **RVO انجام شد**.
+
+---
+
+## 🔻 گام 3: غیرفعال‌کردن RVO برای مشاهده تفاوت
+
+برای بررسی اینکه اگر RVO نبود، چه اتفاقی می‌افتاد:
+
+### 🔹 با GCC:
+
+```bash
+g++ -std=c++17 -O2 -fno-elide-constructors test.cpp -o test
+./test
+```
+
+🔻 `-fno-elide-constructors` به کامپایلر می‌گه **کپی/موو رو حذف نکن** (یعنی RVO رو غیرفعال کن).
+
+**خروجی:**
+
+```
+Constructor
+Move Constructor
+```
+
+🧠 الان اول شیء ساخته شد، بعد منتقل شد → یعنی RVO **غیرفعال شده بود**.
+
+---
+
+## 💡 نکته برای C++11 یا C++14
+
+اگر C++17 یا بالاتر استفاده نکنی، RVO اختیاریه (و نه اجباری).
+
+```bash
+g++ -std=c++14 -O2 test.cpp -o test
+./test
+```
+
+در این حالت بسته به کامپایلر ممکنه:
+
+* فقط constructor
+* یا constructor + move constructor دیده بشه
+
+---
+
+## 🎯 خلاصه مقایسه تنظیمات
+
+| Flag                      | توضیح                                   | خروجی مورد انتظار              |
+| ------------------------- | --------------------------------------- | ------------------------------ |
+| `-O2` یا `-O3`            | فعال‌سازی بهینه‌سازی (RVO معمولاً فعال) | فقط constructor                |
+| `-fno-elide-constructors` | غیرفعال‌کردن RVO                        | constructor + move constructor |
+| `-std=c++17`              | اجباری شدن RVO روی return از temporary  | فقط constructor                |
+
+---
+
+
+------------------------
+------------------------
+------------------------
+------------------------
+------------------------
