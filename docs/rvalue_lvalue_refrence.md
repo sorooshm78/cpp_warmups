@@ -2277,9 +2277,16 @@ template<class T> void reset(vector<T>& vec) {
 --------------
 --------------
 
-
-
-
+![](./images/rl27.png)
+![](./images/rl28.png)
+![](./images/rl29.png)
+![](./images/rl30.png)
+![](./images/rl31.png)
+![](./images/rl32.png)
+![](./images/rl33.png)
+![](./images/rl34.png)
+![](./images/rl35.png)
+![](./images/rl36.png)
 
 --------------
 --------------
