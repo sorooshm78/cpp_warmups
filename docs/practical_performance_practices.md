@@ -188,3 +188,104 @@ int main() {
 -------
 -------
 -------
+
+![](./images/ppp25.png)
+This slide is from a C++ programming presentation and is addressing **efficient and correct use of virtual functions and destructors** in class hierarchies. Let’s break it down carefully.
+
+---
+
+### **Code Explanation**
+
+```cpp
+struct Base {
+    virtual ~Base() = default;
+    virtual void do_a_thing() = 0;
+};
+
+struct Derived : Base {
+    virtual ~Derived() = default;
+    void do_a_thing() override {}
+};
+```
+
+#### 1. `virtual ~Base() = default;`
+
+* This is good practice.
+* It **ensures proper cleanup** when a derived object is deleted through a `Base*` pointer.
+* Marking it `= default` tells the compiler to generate the destructor automatically.
+
+#### 2. `virtual void do_a_thing() = 0;`
+
+* This is a **pure virtual function**.
+* It makes `Base` an **abstract class**, so you cannot instantiate `Base` directly.
+* Forces derived classes to implement `do_a_thing()`.
+
+#### 3. `virtual ~Derived() = default;`
+
+* This line is **what the slide critiques**.
+* While not *incorrect*, it’s **redundant**.
+
+---
+
+## 🧠 Key Concepts Explained
+
+### ✅ Why `virtual ~Base()` is **necessary**
+
+* If you ever write `Base* b = new Derived(); delete b;`, then `Derived`'s destructor must be called.
+* If `~Base()` is **not virtual**, only `Base`'s destructor is invoked — leading to **resource leaks or undefined behavior**.
+
+---
+
+### ❌ Why `virtual ~Derived()` is **unnecessary**
+
+* Since `Base` already has a `virtual` destructor, **all derived destructors are automatically virtual**, whether or not you write `virtual` again.
+* Writing `virtual` on `~Derived()` is **redundant** and adds noise without benefit.
+
+---
+
+### 🧱 "Move construction / assignment is disabled"
+
+This refers to:
+
+```cpp
+virtual ~Base() = default;
+```
+
+* **Virtual destructors inhibit move semantics** unless **explicitly defaulted**.
+* When a class has a virtual destructor, the compiler does **not implicitly generate** move constructors and move assignment operators.
+* This is because adding a virtual table (`vtable`) pointer changes the semantics of moving objects (especially slicing concerns).
+
+So:
+
+```cpp
+struct Base {
+    virtual ~Base() = default;
+    Base(Base&&) = default;            // Add this if you want move constructor
+    Base& operator=(Base&&) = default; // Add this if you want move assignment
+};
+```
+
+---
+
+### 📋 Summary of What’s Wrong
+
+1. **Unnecessary Work**: `virtual ~Derived()` repeats `virtual`, which is implied.
+2. **Subtle Limitation**: Move constructor and assignment operator aren't generated unless manually defaulted in presence of virtual destructor.
+
+---
+
+### ✅ Best Practice Version
+
+```cpp
+struct Base {
+    virtual ~Base() = default;
+    virtual void do_a_thing() = 0;
+    Base(Base&&) = default;
+    Base& operator=(Base&&) = default;
+};
+
+struct Derived : Base {
+    ~Derived() = default; // no need to repeat `virtual`
+    void do_a_thing() override {}
+};
+```
