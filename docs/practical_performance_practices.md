@@ -289,3 +289,17 @@ struct Derived : Base {
     void do_a_thing() override {}
 };
 ```
+
+![](./images/ppp26.png)
+
+-------
+-------
+-------
+
+![](./images/ppp27.png)
+![](./images/ppp28.png)
+![](./images/ppp29.png)
+
+-------
+-------
+-------
