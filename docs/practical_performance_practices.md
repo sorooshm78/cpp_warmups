@@ -303,3 +303,69 @@ struct Derived : Base {
 -------
 -------
 -------
+
+![](./images/ppp30.png)
+![](./images/ppp31.png)
+
+This image is giving advice in the context of C++ smart pointers and object slicing: **"Don't Do More Work Than You Have To"**. It illustrates an inefficiency that can occur when passing smart pointers by value rather than by reference.
+
+---
+
+### 🔍 Let's break down the code:
+
+```cpp
+int use_a_base(std::shared_ptr<Base> p)
+{
+    return p->value();
+}
+```
+
+* This function takes a `shared_ptr<Base>` **by value**.
+* This **increments the reference count** of the shared pointer, which involves atomic operations and is **relatively expensive**.
+* If the function just wants to **read** or **use** the object without taking ownership or modifying the pointer, this is unnecessary overhead.
+
+---
+
+```cpp
+int main()
+{
+    auto ptr = std::make_shared<Derived>();
+    use_a_base(ptr);
+}
+```
+
+* `ptr` is a `shared_ptr<Derived>`, which gets **implicitly converted** to a `shared_ptr<Base>` when passed to `use_a_base`.
+* This conversion involves **creating a new shared pointer**, which internally points to the same control block but still **bumps the ref count**.
+
+---
+
+### 💡 The Better Way
+
+To follow the advice "Don't Do More Work Than You Have To", you should **pass by `const&`** instead:
+
+```cpp
+int use_a_base(const std::shared_ptr<Base>& p)
+{
+    return p->value();
+}
+```
+
+This way:
+
+* You **avoid copying** the smart pointer.
+* You **avoid incrementing/decrementing the reference count** unnecessarily.
+* You **still ensure safety** because the function is not modifying the pointer.
+
+---
+
+### ✅ Summary
+
+| Original Code             | Problem                                         |
+| ------------------------- | ----------------------------------------------- |
+| `std::shared_ptr<Base> p` | Copying increases ref count unnecessarily       |
+| `use_a_base(ptr)`         | Causes extra work due to copy & type conversion |
+
+**Solution:** Use `const std::shared_ptr<Base>& p` in the function parameter.
+
+![](./images/ppp32.png)
+![](./images/ppp33.png).
