@@ -368,4 +368,4 @@ This way:
 **Solution:** Use `const std::shared_ptr<Base>& p` in the function parameter.
 
 ![](./images/ppp32.png)
-![](./images/ppp33.png).
+![](./images/ppp33.png)
