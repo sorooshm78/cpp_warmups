@@ -369,3 +369,71 @@ This way:
 
 ![](./images/ppp32.png)
 ![](./images/ppp33.png)
+
+------------------
+------------------
+------------------
+------------------
+------------------
+
+![](./images/ppp34.png)
+
+This slide is about performance optimization in C++ input/output (I/O) operations, specifically highlighting the cost of using `std::endl`.
+
+### Title:
+
+**"Don't Do More Work Than You Have To"**
+
+This suggests we should avoid unnecessary operations, especially expensive ones, when coding.
+
+---
+
+### Focus: `std::endl`
+
+#### Code Example:
+
+```cpp
+void println(ostream &os, const std::string &str)
+{
+    os << str << std::endl;
+}
+```
+
+This function prints a string followed by `std::endl` to an output stream.
+
+---
+
+### Bullet Points Explanation:
+
+* **What does `std::endl` do?**
+
+  * It inserts a newline (`'\n'`) **and** **flushes the output buffer**.
+
+* **It's equivalent to `'\n' << std::flush`**
+
+  * This means `std::endl` not only moves to the next line but also forces all output to be written immediately to the output device, which is **more expensive**.
+
+* **Expect that flush to cost you at least 9x overhead in your I/O**
+
+  * Flushing the buffer frequently (e.g., with every line) can slow down your program significantly—up to 9 times or more.
+
+---
+
+### Conclusion:
+
+Use `'\n'` instead of `std::endl` unless you specifically need to flush the output. This small change can drastically improve performance, especially in programs that produce a lot of output.
+
+![](./images/ppp35.png)
+![](./images/ppp36.png)
+
+--------------
+--------------
+--------------
+--------------
+
+## ****
+
+![](./images/ppp37.png)
+
+## ****
+
