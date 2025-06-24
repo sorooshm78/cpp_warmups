@@ -597,3 +597,24 @@ struct D : B
 ## ****
 
 ![](./images/ppp55.png)
+
+
+-----
+-----
+-----
+
+# Summary
+![](./images/ppp56.png)
+![](./images/ppp57.png)
+
+-----
+-----
+-----
+
+![](./images/ppp58.png)
+![](./images/ppp59.png)
+![](./images/ppp60.png)
+![](./images/ppp61.png)
+![](./images/ppp62.png)
+![](./images/ppp63.png)
+![](./images/ppp64.png)
