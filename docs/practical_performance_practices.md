@@ -438,5 +438,162 @@ Use `'\n'` instead of `std::endl` unless you specifically need to flush the outp
 ## ****
 
 ![](./images/ppp38.png)
+![](./images/ppp39.png)
+![](./images/ppp41.png)
 
+----
+----
 
+make_unique and make_shared are more concise than explicitly calling the constructor of unique_ptr and shared_ptr since they don’t require specifying the type multiple times and eliminate the need to use new.
+
+make_unique and make_shared should also be preferred for exception-safety and performance reasons.
+
+## Exception-Safety
+
+While make_unique and make_shared are exception-safe, complex constructions of unique_ptr and shared_ptr might not be because C++ allows arbitrary order of evaluation of subexpressions (until C++17).
+
+Consider this example:
+
+f(unique_ptr<Lhs>(new Lhs()), throwingFunction());
+The following scenario can happen:
+
+Memory allocation for Lhs
+Construction of the Lhs object
+Call to throwingFunction (before the unique_ptr construction)
+throwingFunction throws an exception
+The constructed Lhs object is leaked since the unique_ptr isn’t constructed yet
+Note: This scenario can only happen before C++17. Since C++17, the standard states that even though the order of evaluation of each argument is still unspecified, interleaving the evaluation of different arguments is no longer allowed. This makes the direct construction of unique_ptr and shared_ptr exception-safe.
+
+## Performance
+
+Using make_unique() doesn’t impact performance, but make_shared() improves it slightly.
+Indeed, constructing explicitly a shared_ptr() requires two heap allocations: one for the managed object and the other for the control block that stores data about the ref-counts and the shared_ptr() deleter. make_shared() on the other hand, performs only one heap allocation.
+
+Note: Because make_shared performs only one allocation for both the object and the control block, the memory occupied by the object will be deallocated when no shared_ptr or weak_ptr points to it. If the object is large, a weak_ptr is used, and memory is a concern, explicitly calling the constructor of shared_ptr may be preferred. This way, the object’s memory will be deallocated when there are no more shared owners, independently of any weak_ptrs.
+
+Noncompliant code example
+```
+std::unique_ptr<MyClass> uniqueP(new MyClass(42)); // Noncompliant
+std::shared_ptr<MyClass> sharedP(new MyClass(42)); // Noncompliant
+```
+Compliant solution
+```
+auto uniqueP = std::make_unique<MyClass>(42);
+auto sharedP = std::make_shared<MyClass>(42);
+```
+Exceptions
+This rule ignores code that uses features not supported by make_shared and make_unique:
+
+custom deleters
+```
+std::unique_ptr<std::FILE, std::function<void(std::FILE*)>> file(
+  fopen("example.txt", "r"),
+  [](FILE* inFile) { fclose(inFile); }); // Compliant: custom deleter is specified
+calling placement-new, i.e., version of new with arguments, like new(std::nothrow)
+```
+In addition, make_shared does not support the following:
+
+custom operator new
+allocating arrays (before C++20)
+
+----
+----
+
+![](./images/ppp40.png) 
+![](./images/ppp42.png) 
+
+## ****
+
+![](./images/ppp43.png) 
+
+## ****
+
+![](./images/ppp44.png) 
+
+----
+----
+----
+
+![](./images/ppp45.png)
+
+Certainly! This image discusses a C++ code snippet with an emphasis on template usage and its implications on code size and performance, summarized by the title "Smaller Code Is Faster Code."
+
+---
+
+### Breakdown of the Code
+
+```cpp
+struct B
+{
+    virtual ~B() = default; 
+  virtual std::vector<int> get_vec() const = 0;
+};
+
+template<typename T>
+struct D : B
+{
+    std::vector<int> get_vec() const override { return m_v; }
+  std::vector<int> m_v;
+};
+```
+
+---
+
+### Explanation
+
+1. **Base class `B`**:
+   - Declares a **virtual destructor** with `= default` to allow proper cleanup of derived objects.
+   - Declares a **pure virtual function** `get_vec()` returning a vector of integers (`std::vector<int>`) marked as `const` (it doesn't modify the object).
+
+2. **Derived class template `D<T>`**:
+   - Inherits from the base `B`.
+   - Implements `get_vec()` to return its member vector `m_v`.
+   - The class itself is a template, meaning multiple instantiations of `D` can exist for different type parameters `T`. The member vector `m_v` stores integers.
+
+---
+
+### What does the comment mean?
+
+- **"With many template instantiations this code blows up in size quickly"**:
+  
+  Even though the method only returns `m_v` (which is `std::vector<int>`), because `D` is a template class, the compiler generates a separate version of `D` for each type `T` you use.
+
+- Each instantiation of the template creates a separate copy of the `get_vec()` function and any other member functions/data. This can cause **code bloat**, meaning your resulting binary becomes larger due to many repeated copies of similar code.
+
+---
+
+### Summary in context
+
+- **"Smaller Code Is Faster Code"** means that if your binary size is large due to many template instantiations, it could impact things like:
+  - Cache efficiency
+  - Load times
+  - Overall program performance
+
+- The slide hints at the importance of understanding how templates duplicate code for different types and how to balance flexibility and code size.
+
+![](./images/ppp46.png)
+
+----
+----
+----
+
+![](./images/ppp47.png)
+![](./images/ppp48.png)
+![](./images/ppp49.png)
+![](./images/ppp50.png)
+
+----
+----
+----
+
+![](./images/ppp51.png)
+![](./images/ppp52.png)
+![](./images/ppp53.png)
+
+## ****
+
+![](./images/ppp54.png)
+
+## ****
+
+![](./images/ppp55.png)
