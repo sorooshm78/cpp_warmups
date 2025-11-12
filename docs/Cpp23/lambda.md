@@ -371,5 +371,3 @@ std::cout << f() << '\n'; // 12
 | **Introduced in**      | **C++11** (unchanged through C++23)                                                 |
 
 ---
-
-Sure, I’ll prepare a PR soon. Thanks for the feedback!
